@@ -1,8 +1,5 @@
-# wfrc_bike_model
-WFRC Bike Model
+# Utah Bike Demand Model
+
 
 ## Documentation
-See [GitHub wiki](https://github.com/RSGInc/wfrc_bike_model/wiki)
-
-## Data
-See [wfrc_bike_model_data](https://github.com/RSGInc/wfrc_bike_model_data) (invitation only)
+See [GitHub wiki](https://github.com/RSGInc/utah_bike_demand_model/wiki)
