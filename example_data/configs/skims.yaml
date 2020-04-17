@@ -1,0 +1,44 @@
+auto_skim_file: auto_skim.csv
+# auto_skim_file: example.db
+
+# output file names
+bike_skim_file: bike_skim.csv
+walk_skim_file: walk_skim.csv
+
+# # table name for sqlite auto skim
+auto_skim_table: auto_skim
+
+skim_ataz_col: i
+skim_ptaz_col: j
+
+# auto skim columns must be ordered 'time', 'dist' for now
+skim_time_col: time  # auto only
+skim_distance_col: dist
+
+save_bike_skim: True
+save_walk_skim: True
+
+# generalized cost coefficients for bike skimming
+route_varcoef_bike:
+    d0: 0.858 # distance on ordinary streets, miles ( bike_class == 0 and lanes > 0 )
+    d1: 0.387 # distance on bike paths ( bike_class == 1 )
+    d2: 0.544 # distance on bike lanes ( bike_class == 2 )
+    d3: 0.773 # distance on bike routes ( bike_class == 3 )
+    dw: 3.449 # distance wrong way ( bike_class == 0 and lanes == 0 )
+    riseft: 0.005 # elevation gain in feet
+    turn: 0.094 # number of turns
+    dne2art: 1.908 # additional penalty for distance on an arterial without bike lane ( fhwa_fc in [1,2,6,11,12,14,77] ) * ( bike_class != 2 )
+    bike_exclude: 999.0 # bikes not allowed ( link_type in ['FREEWAY'] )
+    thru_centroid: 999.0 # centroid to centroid traversal
+    shuttle_ivt: 0.143 # shuttle in-vehicle minutes
+    shuttle_wait: 0.216 # shuttle wait minutes
+
+# generalized cost coefficients for walk skimming
+route_varcoef_walk:
+    distance: 1.0
+    bike_exclude: 999.0
+    thru_centroid: 999.0
+
+# maximum cost after which skimming is halted
+max_cost_bike: 15.0
+max_cost_walk: 10.0
