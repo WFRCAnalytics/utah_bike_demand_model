@@ -1,0 +1,183 @@
+segments:
+    - hbw1
+    - hbw2
+    - hbw3
+    - hbw4
+    - hscl1
+    - hscl2
+    - hscl3
+    - hscl4
+    - hunv1
+    - hunv2
+    - hunv3
+    - hunv4
+    - nwk1
+    - nwk2
+    - nwk3
+    - nwk4
+    - nhb
+
+# from and to columns for trip tables
+trip_ataz_col: ataz
+trip_ptaz_col: ptaz
+
+# modes in order of columns in trip tables
+modes:
+    - da
+    - s2
+    - s3
+    - wt
+    - dt
+    - wk
+    - bk
+
+motorized_modes:
+    - da
+    - s2
+    - s3
+    - wt
+    - dt
+
+walk_modes:
+    - wk
+
+bike_modes:
+    - bk
+
+# input_sqlite_db: example.db
+
+# if using sqlite for input trip tables
+trip_tables:
+    hbw1: hbw1trip
+    hbw2: hbw2trip
+    hbw3: hbw3trip
+    hbw4: hbw4trip
+    hscl1: hscl1trip
+    hscl2: hscl2trip
+    hscl3: hscl3trip
+    hscl4: hscl4trip
+    hunv1: hunv1trip
+    hunv2: hunv2trip
+    hunv3: hunv3trip
+    hunv4: hunv4trip
+    nwk1: nwk1trip
+    nwk2: nwk2trip
+    nwk3: nwk3trip
+    nwk4: nwk4trip
+    nhb: nhbtrip
+
+# output file names; and inputs if no input_sqlite_db
+trip_files:
+    hbw1: hbw1trip.csv
+    hbw2: hbw2trip.csv
+    hbw3: hbw3trip.csv
+    hbw4: hbw4trip.csv
+    hscl1: hscl1trip.csv
+    hscl2: hscl2trip.csv
+    hscl3: hscl3trip.csv
+    hscl4: hscl4trip.csv
+    hunv1: hunv1trip.csv
+    hunv2: hunv2trip.csv
+    hunv3: hunv3trip.csv
+    hunv4: hunv4trip.csv
+    nwk1: nwk1trip.csv
+    nwk2: nwk2trip.csv
+    nwk3: nwk3trip.csv
+    nwk4: nwk4trip.csv
+    nhb: nhbtrip.csv
+
+motorized_util_files:
+    hbw1: hbw1motutil.csv
+    hbw2: hbw2motutil.csv
+    hbw3: hbw3motutil.csv
+    hbw4: hbw4motutil.csv
+    hscl1: hscl1motutil.csv
+    hscl2: hscl2motutil.csv
+    hscl3: hscl3motutil.csv
+    hscl4: hscl4motutil.csv
+    hunv1: hunv1motutil.csv
+    hunv2: hunv2motutil.csv
+    hunv3: hunv3motutil.csv
+    hunv4: hunv4motutil.csv
+    nwk1: nwk1motutil.csv
+    nwk2: nwk2motutil.csv
+    nwk3: nwk3motutil.csv
+    nwk4: nwk4motutil.csv
+    nhb: nhbmotutil.csv
+
+# coefficients by market segment
+ivt_coef:
+    hbw1: -0.017
+    hbw2: -0.017
+    hbw3: -0.017
+    hbw4: -0.017
+    hscl1: -0.005
+    hscl2: -0.005
+    hscl3: -0.005
+    hscl4: -0.005
+    hunv1: -0.061
+    hunv2: -0.061
+    hunv3: -0.061
+    hunv4: -0.061
+    nwk1: -0.005
+    nwk2: -0.005
+    nwk3: -0.005
+    nwk4: -0.005
+    nhb: -0.013
+
+walk_skim_coef: -0.712
+bike_skim_coef: -0.182
+
+# ASCs and calibration adjustments
+walk_asc:
+    hbw1: -0.69
+    hbw2: 0.18
+    hbw3: -0.08
+    hbw4: 0.61
+    hscl1: 0.44
+    hscl2: -1.32
+    hscl3: 0.25
+    hscl4: 1.0
+    hunv1: -0.736
+    hunv2: -0.736
+    hunv3: -0.736
+    hunv4: -0.736
+    nwk1: 1.45
+    nwk2: 0.47
+    nwk3: 0.48
+    nwk4: 0.44
+    nhb: 0.58
+
+bike_asc:
+    hbw1: -3.38
+    hbw2: -2.51
+    hbw3: -2.75
+    hbw4: -2.08
+    hscl1: -2.93
+    hscl2: -4.69
+    hscl3: -3.11
+    hscl4: -2.37
+    hunv1: -2.79
+    hunv2: -2.79
+    hunv3: -2.79
+    hunv4: -2.79
+    nwk1: -2.2
+    nwk2: -2.21
+    nwk3: -2.05
+    nwk4: -2.06
+    nhb: -3.18
+
+# more coefficients
+walk_intrazonal: -0.613
+bike_intrazonal: -1.720
+
+# parameters for emissions estimation
+occupancy:
+    da: 1
+    s2: 2
+    s3: 3.25
+
+pollutants:
+    CO2:
+        grams_per_mile: 311.0
+        grams_per_minute: 79.0

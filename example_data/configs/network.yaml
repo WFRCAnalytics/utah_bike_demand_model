@@ -1,0 +1,49 @@
+link_file: link.csv
+# link_file: example.db
+link_table_name: link # if using sqlite for link table
+from_name: from_node
+to_name: to_node
+
+link_attributes_by_direction:
+    distance:
+        - length
+        - length
+    bike_class:
+        - bike_class
+        - bike_class
+    lanes:
+        - ab_ln
+        - ba_ln
+    riseft:
+        - ab_gain
+        - ba_gain
+    link_type:
+        - link_type
+        - link_type
+    fhwa_fc:
+        - fhwa_fc
+        - fhwa_fc
+    shuttle_ivt:
+        - ab_ivt
+        - ba_ivt
+    shuttle_wait:
+        - wait
+        - wait
+
+node_file: node.csv
+# node_file: example.db
+node_table_name: node  # if using sqlite for node table
+node_name: node_id
+
+node_attributes:
+    xcoord: xcoord
+    ycoord: ycoord
+
+node_x_name: xcoord
+node_y_name: ycoord
+
+centroid_connector_name: centroid
+
+centroid_connector_test:
+    - link_type
+    - CENTROID CONNECT
