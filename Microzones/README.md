@@ -1,18 +1,18 @@
 ## Microzone Attributes
 
-**Households**
-Description: Number of households (residential units that are occupied)
-Source:REMM
+**Households**  
+Description: Number of households (residential units that are occupied)  
+Source:REMM  
 
-**Residential Units**
-Description: Number of residential units
-Source: REMM
+**Residential Units**  
+Description: Number of residential units  
+Source: REMM  
 
-**Population**
-Description:
-Source:REMM
+**Population**  
+Description:  
+Source:REMM  
 
-**jobs1:*
+**jobs1**
 Description:
 Source:REMM
 
@@ -50,92 +50,92 @@ Source:REMM
 
 **ENROL_ELEM**
 Description:
-Source:REMM
+Source:REMM  
 
 **ENROL_MIDL**
 Description:
-Source:REMM
+Source:REMM  
 
 **ENROL_HIGH**
 Description:
-Source:
+Source:REMM  
 
 **Park_Score**
 Description:
-Source:
+Source:AGRC  
 
 **TRAIL_HD**
 Description:
-Source:
+Source:AGRC  
 
 **School_CD**
 Description:
-Source:
+Source:AGRC  
 
 **LGT_RAIL**
 Description:
-Source:
+Source:AGRC  
 
 **COMM_RAIL**
 Description:
-Source:
+Source:AGRC  
 
 **POP_LC1**
 Description:
-Source:
+Source:TDM
 
 **POP_LC2**
 Description:
-Source:
+Source:TDM
 
 **POP_LC3**
 Description:
-Source:
+Source:TDM
 
 **HHSIZE_LC1**
 Description:
-Source:
+Source:TDM
 
 **HHSIZE_LC2**
 Description:
-Source:
+Source:TDM
 
 **HHSIZE_LC3**
 Description:
-Source:
+Source:TDM
  
 **POP_AG1**
-Description: AG1) Children - 0 to 17
-Source:
+Description: Total Population AG1 (Children - 0 to 17)
+Source:TDM
 
 **POP_AG2**
-Description: AG2) Adults - 18 to 64
-Source:
+Description: Total Population AG2 (Adults - 18 to 64)
+Source:TDM
 
 **POP_AG3**
-Description: AG3) Seniors - 65 +
+Description: Total Population AG3 (Seniors - 65 +)
+Source:TDM
+
+**PCT_POPLC1**  
+Description: Population Percentage LC1 (households with no children and seniors)  
+Source: TDM 
+
+**PCT_POPLC2**  
+Description: Population Percentage LC2 (households with children and no seniors) 
 Source:
 
-**PCT_POPLC1**
-Description:LC1) households with no children and seniors
-Source:
-
-**PCT_POPLC2**
-Description:LC2) households with children and no seniors
-Source:
-
-**PCT_POPLC3**
-Description:LC3) households with seniors and may have children
-Source:
+**PCT_POPLC3**  
+Description: Population Percentage LC3 (households with seniors and may have children)  
+Source:TDM  
 
 **PCT_AG1**
-Description:
-Source:
+Description:Population Percentage AG1 (Children - 0 to 17)
+Source: TDM
 
 **PCT_AG2**
-Description:
-Source:
+Description:Population Percentage AG2 (Adults - 18 to 64)
+Source:TDM
 
 **PCT_AG3**
-Description:
-Source:
+Description:Population Percentage AG3 (Seniors - 65 +)
+Source: TDM
