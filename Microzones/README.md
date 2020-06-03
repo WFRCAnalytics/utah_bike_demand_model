@@ -9,75 +9,75 @@ Description: Number of residential units
 Source: REMM  
 
 **Population**  
-Description:  
+Description:  Total population
 Source:REMM  
 
 **jobs1**
-Description:
+Description: Number of Accomodation, Food Services Jobs
 Source:REMM
 
 **jobs3**
-Description:
+Description: Number of Government and Education jobs
 Source:REMM
 
 **jobs4**
-Description:
+Description: Number of Health Care jobs
 Source:REMM
 
-**jobs5**
-Description:
-Source:REMM
+**jobs5**  
+Description: Number of Manufacturing jobs  
+Source:REMM  
 
-**jobs6**
-Description:
-Source:REMM
+**jobs6**  
+Description: Number of Office jobs  
+Source:REMM  
 
-**jobs7**
-Description:
-Source:REMM
+**jobs7**  
+Description: Number of Other Jobs  
+Source:REMM  
 
-**jobs9**
-Description:
-Source:REMM
+**jobs9**  
+Description: Number of Retail Trade jobs  
+Source:REMM  
 
-**job10**
-Description:
-Source:REMM
+**job10**  
+Description: Number of Wholesale, transport jobs  
+Source:REMM  
 
 **AVGINCOME**
-Description:
-Source:REMM
+Description: Mean income  
+Source:REMM  
 
 **ENROL_ELEM**
-Description:
+Description: Elementary school enrollment
 Source:REMM  
 
 **ENROL_MIDL**
-Description:
+Description:Middle school enrollment  
 Source:REMM  
 
 **ENROL_HIGH**
-Description:
+Description: High school enrollment
 Source:REMM  
 
 **Park_Score**
-Description:
+Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
 Source:AGRC  
 
 **TRAIL_HD**
-Description:
+Description: Presence of a trailhead 1) yes, 0) no  
 Source:AGRC  
 
 **School_CD**
-Description:
-Source:AGRC  
+Description: Presence of schools. 0) none, 1) Elementary school, 2) high schools, 3) online/higher education  
+Source: AGRC  
 
 **LGT_RAIL**
-Description:
+Description:Presence of a light rail station  1) yes, 0) no
 Source:AGRC  
 
 **COMM_RAIL**
-Description:
+Description: Presence of commuter rail stations  1) yes, 0) no
 Source:AGRC  
 
 **POP_LC1**
