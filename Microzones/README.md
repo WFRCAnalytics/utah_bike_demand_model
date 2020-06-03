@@ -46,39 +46,19 @@ Source:REMM
 
 **AVGINCOME**  
 Description: Mean income  
-Source:REMM  
+Source:TDM    
 
 **ENROL_ELEM**  
-Description: Elementary school enrollment  
-Source:REMM  
+Description: Elementary school enrollment / population
+Source:TDM    
 
 **ENROL_MIDL**  
-Description: Middle school enrollment  
-Source:REMM  
+Description: Middle school enrollment  / population
+Source:TDM   
 
 **ENROL_HIGH**  
-Description: High school enrollment  
-Source:REMM  
-
-**Park_Score**  
-Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
-Source:AGRC  
-
-**TRAIL_HD**  
-Description: Presence of a trailhead 1) yes, 0) no  
-Source:AGRC  
-
-**School_CD**  
-Description: Presence of schools. 0) none, 1) Elementary school, 2) high schools, 3) online/higher education  
-Source: AGRC  
-
-**LGT_RAIL**  
-Description:Presence of a light rail station  1) yes, 0) no  
-Source:AGRC  
-
-**COMM_RAIL**  
-Description: Presence of commuter rail stations  1) yes, 0) no  
-Source:AGRC  
+Description: High school enrollment  / population
+Source:TDM    
 
 **POP_LC1**  
 Description: Total Population LC1 (households with no children and seniors)  
@@ -139,3 +119,23 @@ Source:TDM
 **PCT_AG3**  
 Description:Population Percentage AG3 (Seniors - 65 +)  
 Source: TDM  
+
+**Park_Score**  
+Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
+Source:AGRC  
+
+**TRAIL_HD**  
+Description: Presence of a trailhead 1) yes, 0) no  
+Source:AGRC  
+
+**School_CD**  
+Description: Presence of schools. 0) none, 1) Elementary school, 2) high schools, 3) online/higher education  
+Source: AGRC  
+
+**LGT_RAIL**  
+Description:Presence of a light rail station  1) yes, 0) no  
+Source:AGRC  
+
+**COMM_RAIL**  
+Description: Presence of commuter rail stations  1) yes, 0) no  
+Source:AGRC  
