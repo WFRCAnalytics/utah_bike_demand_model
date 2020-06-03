@@ -87,18 +87,6 @@ Source: TDM
 **HHSIZE_LC3**  
 Description:Mean Number of resdients per household LC3 (households with seniors and may have children)  
 Source: TDM  
- 
-**POP_AG1**  
-Description: Total Population AG1 (Children - 0 to 17)  
-Source: TDM  
-
-**POP_AG2**  
-Description: Total Population AG2 (Adults - 18 to 64)  
-Source: TDM  
-
-**POP_AG3**  
-Description: Total Population AG3 (Seniors - 65 +)  
-Source: TDM  
 
 **PCT_POPLC1**  
 Description: Population Percentage LC1 (households with no children and seniors)    
