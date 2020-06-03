@@ -76,9 +76,9 @@ Source:TDM
 Description: Mean Number of resdients per household LC1 (households with no children and seniors)  
 Source:TDM  
 
-**HHSIZE_LC2**  
-Description: Mean Number of resdients per household LC2 (households with children and no seniors) 
-Source:TDM 
+**HHSIZE_LC2**   
+Description: Mean Number of resdients per household LC2 (households with children and no seniors)  
+Source:TDM  
 
 **HHSIZE_LC3**  
 Description:Mean Number of resdients per household LC3 (households with seniors and may have children)  
@@ -101,8 +101,8 @@ Description: Population Percentage LC1 (households with no children and seniors)
 Source: TDM 
 
 **PCT_POPLC2**  
-Description: Population Percentage LC2 (households with children and no seniors) 
-Source:  
+Description: Population Percentage LC2 (households with children and no seniors)  
+Source:  TDM
 
 **PCT_POPLC3**  
 Description: Population Percentage LC3 (households with seniors and may have children)  
