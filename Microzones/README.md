@@ -1,8 +1,8 @@
 ## Microzone Attributes
 
-*REMM: Real Estate Market Model  
-TDM: Travel Demand Model  
-AGRC: Utah Automated Geographic Resource Center*  
+*REMM: Real Estate Market Model (WFRC/MAG MPO Areas) 
+TDM: Wasatch Front Travel Demand Model (WFRC/MAG MPO Areas) 
+AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*  
 
 **Households**  
 Description: Number of households (residential units that are occupied)  
@@ -17,7 +17,7 @@ Description: Total population
 Source: REMM  
 
 **jobs1**  
-Description: Number of Accomodation, Food Services Jobs  
+Description: Number of Accommodation, Food Services Jobs  
 Source: REMM  
 
 **jobs3**  
@@ -37,7 +37,7 @@ Description: Number of Office jobs
 Source: REMM  
 
 **jobs7**  
-Description: Number of Other Jobs  
+Description: Number of Other Jobs (non-typical commuting/travel patterns) 
 Source: REMM  
 
 **jobs9**  
@@ -77,15 +77,15 @@ Description: Total Population LC3 (households with seniors and may have children
 Source: TDM  
 
 **HHSIZE_LC1**  
-Description: Mean Number of resdients per household LC1 (households with no children and seniors)  
+Description: Mean Number of residents per household LC1 (households with no children and seniors)  
 Source: TDM  
 
 **HHSIZE_LC2**   
-Description: Mean Number of resdients per household LC2 (households with children and no seniors)  
+Description: Mean Number of residents per household LC2 (households with children and no seniors)  
 Source: TDM  
 
 **HHSIZE_LC3**  
-Description:Mean Number of resdients per household LC3 (households with seniors and may have children)  
+Description:Mean Number of residents per household LC3 (households with seniors and may have children)  
 Source: TDM  
 
 **PCT_POPLC1**  
@@ -117,7 +117,7 @@ Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage 
 Source: AGRC  
 
 **TRAIL_HD**  
-Description: Presence of a trailhead 1) yes, 0) no  
+Description: Presence of a trailhead or other common ride starting point 1) yes, 0) no  
 Source: AGRC  
 
 **School_CD**  
@@ -125,9 +125,9 @@ Description: Presence of schools. 0) none, 1) Elementary school, 2) high schools
 Source: AGRC  
 
 **LGT_RAIL**  
-Description:Presence of a light rail station  1) yes, 0) no  
+Description: Presence of a light rail station  1) yes, 0) no  
 Source: AGRC  
 
 **COMM_RAIL**  
-Description: Presence of commuter rail stations  1) yes, 0) no  
+Description: Presence of commuter rail station  1) yes, 0) no  
 Source: AGRC  
