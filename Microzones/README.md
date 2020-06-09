@@ -8,7 +8,7 @@ AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*
 Description: Number of households (residential units that are occupied)  
 Source: REMM  
 
-**Residential Units**  
+**Residentia**  
 Description: Number of residential units  
 Source: REMM  
 
@@ -112,19 +112,19 @@ Source: TDM
 Description:Population Percentage AG3 (Seniors - 65 +)  
 Source: TDM  
 
-**Park_Score**  
+**PARK_SCORE**  
 Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
+Source: AGRC   
+
+**SCHOOL_CD**  
+Description: Presence of schools. 0) none, 1) Adult High, Residential Treatment, Alternative, Online 2) high schools, Higher Education 3) Elementary/Middle school,
 Source: AGRC  
 
-**TRAIL_HD**  
+**TRAIL_HEAD**  
 Description: Presence of a trailhead or other common ride starting point 1) yes, 0) no  
-Source: AGRC  
+Source: AGRC 
 
-**School_CD**  
-Description: Presence of schools. 0) none, 1) Elementary school, 2) high schools, 3) online/higher education  
-Source: AGRC  
-
-**LGT_RAIL**  
+**LIGHT_RAIL**  
 Description: Presence of a light rail station  1) yes, 0) no  
 Source: AGRC  
 
