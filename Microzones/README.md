@@ -110,7 +110,23 @@ Source: TDM
 
 **PCT_AG3**  
 Description:Population Percentage AG3 (Seniors - 65 +)  
-Source: TDM  
+Source: TDM
+
+**INC1**
+Description: $0 to 34,999 (Add More detail)
+Source:TDM
+
+**INC2**
+Description: $35,000 to 49,999 (Add More detail)
+Source:TDM
+
+**INC3**
+Description: $50,000 to 99,999 (Add More detail)
+Source:TDM
+
+**INC4**
+Description: $100,000+ (Add More detail)
+Source:TDM
 
 **PARK_SCORE**  
 Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
@@ -120,8 +136,8 @@ Source: AGRC
 Description: Presence of schools. 0) none, 1) Adult High, Residential Treatment, Alternative, Online 2) high schools, Higher Education 3) Elementary/Middle school,
 Source: AGRC  
 
-**TRAIL_HEAD**  
-Description: Presence of a trailhead or other common ride starting point 1) yes, 0) no  
+**TH_SCORE**  
+Description: Scores determining attractiveness of trailheads 3) very attractive 2) moderately attractive 1) slightly attractive 0) no trail head
 Source: AGRC 
 
 **LIGHT_RAIL**  
@@ -130,4 +146,8 @@ Source: AGRC
 
 **COMM_RAIL**  
 Description: Presence of commuter rail station  1) yes, 0) no  
-Source: AGRC  
+Source: AGRC
+
+**GQU_RATIO**
+Description: Percentage university student group quarters population by zone (group quarters / total population, where student housing is located)
+Source: American Community Survey
