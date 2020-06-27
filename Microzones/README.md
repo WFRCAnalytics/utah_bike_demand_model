@@ -110,23 +110,23 @@ Source: TDM
 
 **PCT_AG3**  
 Description:Population Percentage AG3 (Seniors - 65 +)  
-Source: TDM
+Source: TDM  
 
-**INC1**
-Description: $0 to 34,999 (Add More detail)
-Source:TDM
+**INC1**  
+Description: Income Group 1 Percentage   $0 to 34,999  
+Source:TDM  
 
-**INC2**
-Description: $35,000 to 49,999 (Add More detail)
-Source:TDM
+**INC2**  
+Description: Income Group 2 Percentage $35,000 to 49,999  
+Source:TDM  
 
-**INC3**
-Description: $50,000 to 99,999 (Add More detail)
-Source:TDM
+**INC3**  
+Description: Income Group 3 Percentage $50,000 to 99,999  
+Source:TDM  
 
-**INC4**
-Description: $100,000+ (Add More detail)
-Source:TDM
+**INC4**  
+Description: Income Group 4 Percentage $100,000+   
+Source:TDM  
 
 **PARK_SCORE**  
 Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
