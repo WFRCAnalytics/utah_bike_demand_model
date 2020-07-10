@@ -150,4 +150,12 @@ Source: AGRC
 
 **GQU_RATIO**
 Description: Percentage university student group quarters population by zone (group quarters / total population, where student housing is located)
-Source: American Community Survey
+Source: American Community Survey  
+
+**area_sqm**  
+Description: Area square meters  
+Source: Self  
+
+**area_acres**  
+Description: Area acres
+Source: Self  
