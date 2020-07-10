@@ -1,8 +1,34 @@
+## Link Attributes  
+link_id: unique identifer  
+from_node: from node ID  
+from_x: From x-coordinate  
+from_y: From y-coordinate  
+to_node: to node ID  
+to_x: To x-coordinate  
+to_y: To y-coordinate  
+Name: Street name  
+Oneway: Indicates if road is one-way  
+Speed: Speed limit in MPH  
+AutoNetwork: Indicates if link is part of Auto Network  
+BikeNetwork: Indicates if link is part of Bike Network  
+PedNetwork: Indicates if link is part of Pedestrian Network  
+DriveTime: (No longer reliable - To be removed)  
+BikeTime: (No longer reliable - To be removed)  
+Pedestrian: (No longer reliable - To be removed)  
+Length_Miles: Length in miles  
+RoadClass: road class  
+AADT: Average Annual Daily Traffic  
+Length_Meters: Length in meters  
+
+
+
+
+
 ## Microzone Attributes
 
-*REMM: Real Estate Market Model (WFRC/MAG MPO Areas) 
-TDM: Wasatch Front Travel Demand Model (WFRC/MAG MPO Areas) 
-AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*  
+*REMM: Real Estate Market Model (WFRC/MAG MPO Areas)*  
+*TDM: Wasatch Front Travel Demand Model (WFRC/MAG MPO Areas)*  
+*AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*  
 
 **Households**  
 Description: Number of households (residential units that are occupied)  
