@@ -2,7 +2,7 @@
 ##### run utah bike demand model
 
 ## batch out inputs from ArcGIS
-python Network_To_Node_Link.py
+python Network_To_Graph.py
 
 ## create bike demand matrices 
 # from wfrc taz level matrices and land use data
