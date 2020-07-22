@@ -76,6 +76,10 @@ Source: REMM
 Description: Number of Wholesale, transport jobs  
 Source: REMM  
 
+**job_total**  
+Description: total number of jobs  
+Source: REMM  
+
 **AVGINCOME**  
 Description: Mean income  
 Source: TDM    
@@ -160,6 +164,10 @@ Source:TDM
 Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
 Source: AGRC   
 
+**PARK_AREA**  
+Description: Area of park space inside zone in square meters   
+Source: AGRC   
+
 **SCHOOL_CD**  
 Description: Presence of schools. 0) none, 1) Adult High, Residential Treatment, Alternative, Online 2) high schools, Higher Education 3) Elementary/Middle school,
 Source: AGRC  
@@ -182,8 +190,12 @@ Source: American Community Survey
 
 **area_sqm**  
 Description: Area square meters  
-Source: Self  
+Source: zones  
 
-**area_acres**  
-Description: Area acres
-Source: Self  
+**area_sqmil**  
+Description: Area square miles
+Source: zones  
+
+**node_id**  
+Description: Central Node ID within microzone
+Source: nodes dataset (converted from multimodal network)
