@@ -28,7 +28,11 @@ ConnectorN:
 RoadClass:  road class  
 AADT: Average Annual Daily Traffic  
 Length_Meters:  link length in miles 
-SignalBin: 1) link has traffic signal 0) link does not have traffic signal  
-Slope: link slope category 
+Signal: 1) link has traffic signal 0) link does not have traffic signal 
+Sig_Count: Number signals associated with link  
+from_z: elevation in meters at node A of link  
+to_z: elevation in meters at node B  of link
+SlopeAB: Slope percentage (from node - to node) 
+SlopeBA: Slope percentage (to node - from node) 
 BikeBlvd: Indicates whether link is a bike boulevard (bike path category = 3B or 3C)
 
