@@ -28,9 +28,9 @@ Add attributes from REMM
 
 ## Microzone Attributes
 
-*REMM: Real Estate Market Model (WFRC/MAG MPO Areas) 
-TDM: Wasatch Front Travel Demand Model (WFRC/MAG MPO Areas) 
-AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*  
+*REMM: Real Estate Market Model (WFRC/MAG MPO Areas)*  
+*TDM: Wasatch Front Travel Demand Model (WFRC/MAG MPO Areas)*  
+*AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*  
 
 **Households**  
 Description: Number of households (residential units that are occupied)  
@@ -74,10 +74,6 @@ Source: REMM
 
 **job10**  
 Description: Number of Wholesale, transport jobs  
-Source: REMM  
-
-**job_total**  
-Description: total number of jobs  
 Source: REMM  
 
 **AVGINCOME**  
@@ -164,10 +160,6 @@ Source:TDM
 Description: Presence of desirable park spaces. 1) Acreage > 10, 2) 5 < Acreage < 10, 3)  Acreage < 5  
 Source: AGRC   
 
-**PARK_AREA**  
-Description: Area of park space inside zone in square meters   
-Source: AGRC   
-
 **SCHOOL_CD**  
 Description: Presence of schools. 0) none, 1) Adult High, Residential Treatment, Alternative, Online 2) high schools, Higher Education 3) Elementary/Middle school,
 Source: AGRC  
@@ -184,18 +176,18 @@ Source: AGRC
 Description: Presence of commuter rail station  1) yes, 0) no  
 Source: AGRC
 
-**GQU_RATIO**
+**GQU_RATIO**  
 Description: Percentage university student group quarters population by zone (group quarters / total population, where student housing is located)
 Source: American Community Survey  
 
-**area_sqm**  
-Description: Area square meters  
-Source: zones  
-
-**area_sqmil**  
-Description: Area square miles
-Source: zones  
+**COLL_ENROLL  
+Description: 2019 enrollment estimates from  
+Source: various sources e.g. utah department of education  
 
 **node_id**  
-Description: Central Node ID within microzone
-Source: nodes dataset (converted from multimodal network)
+Description: Central Node ID within microzone  
+Source: nodes dataset (converted from multimodal network)  
+
+**AREA_SQMIL**  
+Description: Area in square miles  
+Source: Self  
