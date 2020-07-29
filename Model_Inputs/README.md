@@ -174,14 +174,20 @@ Source: AGRC
 Description: Presence of commuter rail station  1) yes, 0) no  
 Source: AGRC
 
-**GQU_RATIO**
+**GQU_RATIO**  
 Description: Percentage university student group quarters population by zone (group quarters / total population, where student housing is located)
 Source: American Community Survey  
 
-**area_sqm**  
-Description: Area square meters  
+**COLL_ENROLL  
+Description: 2019 enrollment estimates from  
+Source: various sources e.g. utah department of education  
+
+**node_id**  
+Description: Central Node ID within microzone  
+Source: nodes dataset (converted from multimodal network)  
+
+**AREA_SQMIL**  
+Description: Area in square miles  
 Source: Self  
 
-**area_acres**  
-Description: Area acres
-Source: Self  
+
