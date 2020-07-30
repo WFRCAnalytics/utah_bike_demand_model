@@ -1,0 +1,73 @@
+link_file: links.csv
+from_name: from_node
+to_name: to_node
+
+link_attributes_by_direction:
+    distance:
+        - Length_Miles
+        - Length_Miles
+    traffic_signal:
+        - Signal
+        - Signal
+    slope:
+        - Slope_AB
+        - Slope_BA
+    bike_boulevard:
+        - BikeBlvd
+        - BikeBlvd
+    AADT:
+        - AADT
+        - AADT
+
+node_file: nodes.csv
+node_name: node_id
+
+node_attributes:
+    xcoord: xcoord
+    ycoord: ycoord
+
+node_x_name: xcoord
+node_y_name: ycoord
+
+centroid_connector_name: centroid
+
+centroid_connector_test:
+    - ConnectorN
+    - Y
+
+# generalized cost coefficients for bike skimming
+route_varcoef_bike:
+    # distance multipliers
+    distance: 1.0
+    bike_blvd_dist: -0.108
+    # bike_path: -0.16
+    prop_link_slope_2_4: 0.371
+    prop_link_slope_4_6: 1.23
+    prop_link_slope_6_plus: 3.239
+    no_bike_lane_light: 0.368
+    no_bike_lane_med: 1.4
+    no_bike_lane_heavy: 7.157
+
+    # additional fixed-distance link-to-link attributes
+    # TODO: convert to miles
+    turn: 0.034  # presence of a turn
+    stop_sign: 0.0037  # presence of a stop sighn
+    traffic_signal: 0.017  # presence of a traffic signal
+    cross_traffic_ls_light: 0.048  # left turn or straight across light traffic; 5-10k AADT
+    cross_traffic_ls_med: 0.05  # left turn or straight across medium traffic; 10-20k AADT
+    cross_traffic_ls_heavy: 0.26  # left turn or straight across heavy traffic; 20k+ AADT
+    cross_traffic_r: 0.031  # right turn into medium to heavy traffic; 10k+ AADT
+    parallel_traffic_l_med: 0.073  # left turn parallel to medium traffic; 10-20k AADT
+    parallel_traffic_l_heavy: 0.18  # left turn parallel to heavy traffic; 20k+ AADT
+
+# maximum cost after which skimming is halted
+max_cost_bike: 15.0
+
+# output file names
+bike_skim_file: bike_skim.csv
+
+skim_azone_col: i
+skim_pzone_col: j
+
+save_bike_skim: True
+

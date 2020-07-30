@@ -1,0 +1,17 @@
+zone_file_name: microzones.csv
+zone_zone_column: zone_id
+zone_node_column: NODE_ID
+
+buffer_dist: 2.5
+buffer_cols:
+    - households
+    - jobs3  # govt and edu jobs
+    - jobs4  # healthcare jobs
+    - jobs6  # office jobs
+    - jobs5  # manufacturing jobs
+    - ENROL_ELEM  # elementary school enrollment
+    - ENROL_MIDL  # middle school enrollment
+    - ENROL_HIGH  # high school enrollment
+    - COLL_ENROL  # university enrollment
+    - PARK_SCORE
+    - MIXED_USE
