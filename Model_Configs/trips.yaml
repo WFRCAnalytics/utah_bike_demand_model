@@ -1,0 +1,193 @@
+segments:
+    - rec_long  # recreation -- long distance
+    - rec_fam  # recreation -- family
+    - rec_oth  # recreation -- other
+    - work  # work
+    - sch_grade  # grade school
+    - sch_univ  # university
+    - maint  # maintenance
+    - disc  # discretionary/otyer
+
+# from and to columns for trip tables
+trip_azone_col: azone
+trip_pzone_col: pzone
+
+# modes in order of columns in trip tables
+modes:
+    - bk
+
+bike_modes:
+    - bk
+
+# output file names; and inputs if no input_sqlite_db
+trip_files:
+    rec_long: rec_long_trip.csv
+    rec_fam: rec_fam_trip.csv
+    rec_oth: rec_oth_trip.csv
+    work: work_trip.csv
+    sch_grade: sch_grade_trip.csv
+    sch_univ: sch_univ_trip.csv
+    maint: maint_trip.csv
+    disc: disc_trip.csv
+    rec_long_nhb: rec_long_trip_nhb.csv
+    rec_fam_nhb: rec_fam_trip_nhb.csv
+    rec_oth_nhb: rec_oth_trip_nhb.csv
+    work_nhb: work_trip_nhb.csv
+    sch_grade_nhb: sch_grade_trip_nhb.csv
+    sch_univ_nhb: sch_univ_trip_nhb.csv
+    maint_nhb: maint_trip_nhb.csv
+    disc_nhb: disc_trip_nhb.csv
+
+# Trip Generation
+
+hh_col: households  # to multiply average household-day trips and get total trips
+
+# number of household-day trips intercept, by segment
+trip_gen_consts:
+    rec_long: 0.012
+    rec_fam: 0.004
+    rec_oth: 0.035
+    work: 0.1
+    sch_grade: 0.016
+    sch_univ: 0.069
+    maint: 0.058
+    disc: 0.055
+
+# trip-gen coefficients for zone attributes
+trip_gen_zone_coefs:
+    rec_long:
+        INC1: 0.019
+        INC4: 0.033
+    rec_fam:
+        INC1: 0.012
+        INC4: 0.011
+    rec_oth:
+        INC1: 0.015
+        INC4: 0.022
+        PCT_POPLC2: -0.069
+    work:
+        INC1: 0.015
+        INC4: 0.071
+        PCT_AG1: -0.16
+        PCT_AG3: -0.068
+    sch_grade:
+        INC1: 0.007
+        INC4: 0.048
+    sch_univ:
+        INC1: 0.031
+        INC4: -0.167
+        PCT_POPLC3: -0.015
+        PCT_AG1: -0.167
+    maint:
+        INC1: 0.107
+        INC4: 0.124
+        PCT_AG1: -0.142
+        PCT_AG3: -0.047
+    disc:
+        INC1: 0.077
+        INC4: 0.092
+        PCT_AG1: -0.167
+        PCT_AG3: -0.047
+
+# trip-gen coefficients for buffered zone attributes
+trip_gen_buffer_coefs:
+    rec_long:
+        households: 8.58e-07
+    rec_fam:
+        ENROL_ELEM: 1.49e-06
+        ENROL_MIDL: 1.49e-06
+        ENROL_HIGH: 1.49e-06
+    rec_oth:
+        PARK_SCORE: 0.002
+    work:
+        jobs3: 1.81e-05
+        jobs4: 2.96e-06
+        jobs5: -7.73e-06
+        jobs6: -1.49e-05
+        PARK_SCORE: 0.003
+        MIXED_USE: 6.17e-06
+    sch_grade:
+        ENROL_ELEM: 1.72e-06
+        ENROL_MIDL: 1.72e-06
+        ENROL_HIGH: 1.72e-06
+    sch_univ:
+        COLL_ENROL: 2.08e-06
+    maint:
+        COLL_ENROL: 2.22e-06
+        MIXED_USE: 2.24e-06
+    disc:
+        MIXED_USE: 3.13e-06
+
+dest_choice_coefs:
+    rec_long:
+        jobs9: 1.0
+        AREA_SQMIL: 69.6
+        PARK_AREA: 11.6
+    rec_fam:
+        households: 0.79
+        ENROL_ELEM: 1.0
+        ENROL_MIDL: 1.0
+        ENROL_HIGH: 1.0
+        PARK_SCORE: 55.9
+    rec_oth:
+        jobs3: 1.0
+        PARK_SCORE: 4.77
+        AREA_SQMIL: 234.6
+    work:
+        jobs_total: 1.0
+        jobs3: 2.69
+    sch_grade:
+        jobs3: 0.31
+        ENROL_ELEM: 1.0
+        ENROL_MIDL: 1.0
+        ENROL_HIGH: 1.0
+    sch_univ:
+        jobs3: 4.13
+        COLL_ENROL: 1.0
+    maint:
+        jobs9: 1.0
+        jobs6: 0.07
+        jobs4: 0.02
+        jobs7: 0.29
+        households: 0.09
+        ENROL_ELEM: 0.11
+        ENROL_MIDL: 0.11
+        ENROL_HIGH: 0.11
+    disc:
+        jobs3: 0.35
+        jobs9: 1.0
+        jobs7: 0.55
+        households: 0.2
+
+# coefficient for non-home-based trips as a percentage of home-based trips
+nhb_factor:
+    rec_long: 0.5
+    rec_fam: 0.548
+    rec_oth: 0.588
+    work: 0.763
+    sch_grade: 0.169
+    sch_univ: 0.75
+    maint: 0.418
+    disc: 0.319
+
+# additive gen dist term by segment
+bike_asc:
+    rec_long: -0.302
+    rec_fam: -2.0
+    rec_oth: -0.791
+    work: -0.78
+    sch_grade: -1.46
+    sch_univ: -1.1
+    maint: -2.02
+    disc: -1.53
+
+# additive intrazonal gen dist
+bike_intrazonal:
+    rec_long: 1.0
+    rec_fam: 2.19
+    rec_oth: 3.0
+    work: -0.16
+    sch_grade: 3.08
+    sch_univ: -1.58
+    maint: 0.479
+    disc: 0.385
