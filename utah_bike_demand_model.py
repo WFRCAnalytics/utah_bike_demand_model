@@ -38,6 +38,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', dest='name', action='store', choices=model.list_steps())
+    parser.add_argument('--sample', dest='sample', action='store', type=int)
     args = parser.parse_args()
 
     utah_base = model.Scenario(
@@ -47,7 +48,8 @@ def main():
 
     # only use first 100 microzones for testing. remove to run full dataset.
     # this method can also be used to compare two scenarios.
-    model.filter_impact_area(utah_base, zone_ids=list(range(0, 100)))
+    if args.sample:
+        model.filter_impact_area(utah_base, zone_ids=list(range(0, args.sample)))
 
     if args.name:
         model.run(args.name, utah_base)

@@ -8,6 +8,8 @@
   - run `python Create_Microzones.py` to create the maz data if needed
   - run `python Network_To_Graph.py` to create the network data if needed
   - run `python utah_bike_demand_model.py` to run the utah bike demand model
+    - add `--name generate_demand` or `--name assign_demand` to run the steps independently
+    - add `--sample 100` to sample only the first 100 microzones
   - eventually these steps will be replaced by an ArcGIS toolbox
 
 ## Documentation
