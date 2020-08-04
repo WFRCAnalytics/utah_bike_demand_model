@@ -11,7 +11,6 @@ Requires data set folder
 
 import arcpy
 import os
-import glob
 import pandas as pd
 import geopandas as gpd
 arcpy.env.overwriteOutput = True
@@ -43,6 +42,9 @@ parks = r"E:\Micromobility\Data\Attributes\ParksLocal.shp"
 commuter_rail_stops = r"E:\Micromobility\Data\Attributes\CommuterRailStations_UTA.shp"
 enrollment = r"E:\Micromobility\Data\Attributes\College_Enrollment.shp"
 group_quarters = r"E:\Micromobility\Data\Attributes\Group_Quarters_BlockGroup_2014_2018.shp"
+nodes = r"E:\Projects\Network-To-Graph-Tool\Results\nodes.shp"
+
+
 
 # Other
 temp_dir = os.path.join(os.getcwd(), 'Output')
@@ -208,7 +210,7 @@ arcpy.CalculateField_management(merged_zones,"zone_id",'!{}!'.format('FID'))
 
 # perform spatial join to get TAZ ID - may need more robust method for zones that cross multiple Tazs
 print('Getting TAZ ids...')
-microzones = arcpy.SpatialJoin_analysis(merged_zones, taz_polygons, os.path.join(temp_dir, 'microzones.shp'),'JOIN_ONE_TO_ONE', '', '', 'HAVE_THEIR_CENTER_IN')
+microzones = arcpy.SpatialJoin_analysis(merged_zones, taz_polygons, os.path.join(temp_dir, 'maz_taz.shp'),'JOIN_ONE_TO_ONE', '', '', 'HAVE_THEIR_CENTER_IN')
 
 # Delete extra fields
 fields = ["Join_Count", 'TARGET_FID', 'Id', 'ORIG_FID', 'OBJECTID', 'rings', 'parts']
@@ -282,9 +284,6 @@ buildings_filtered = buildings[['parcel_id', 'parcel_acres','residential_units',
 
 # aggregate buildings by parcel id and sum the other columns
 buildings_grouped = buildings_filtered.groupby('parcel_id', as_index=False).sum()
-
-# export to csv
-# buildings_grouped.to_csv(os.path.join(temp, "buildings_sum_parcelID.csv"), index=False)
 
 # read in parcel features
 parcels = gpd.read_file(remm_parcels)
@@ -455,7 +454,7 @@ print("Computing attraction attributes...")
 
 
 #-------------------
-# Parks
+# Parks Score
 #-------------------
 """
 1:  Acreage > 10
@@ -463,7 +462,7 @@ print("Computing attraction attributes...")
 3:  Acreage < 5
 """
 
-print("Working on parks...")
+print("Working on park score...")
 parks_lyr =  arcpy.MakeFeatureLayer_management(parks, 'parks')
   
 # add empty park score field if it doesn't exist
@@ -498,6 +497,43 @@ arcpy.SpatialJoin_analysis(microzones_geom, parks_lyr, maz_park_join, "JOIN_ONE_
 maz_park_join_df = gpd.read_file(maz_park_join)
 maz_park_join_df =  maz_park_join_df[['zone_id', "PARK_SCORE"]]
 maz_remm_data = maz_remm_data.merge(maz_park_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+
+#-------------------
+# Parks Area
+#-------------------
+
+print("Working on park area...")
+
+# identity
+maz_park_identity = os.path.join(temp_dir, "maz_park_identity.shp")
+parks_separated = arcpy.Identity_analysis(parks_lyr, microzones_geom, maz_park_identity)
+
+# calculate area of each separated park - sq. meters
+arcpy.AddField_management(parks_separated, field_name="PARK_AREA", field_type='LONG')
+with arcpy.da.UpdateCursor(parks_separated, ['Park_Area', 'SHAPE@AREA']) as cursor:
+    for row in cursor:
+        row[0] = row[1]
+        cursor.updateRow(row)
+
+park_points = os.path.join(temp_dir, "park_pts.shp")   
+arcpy.FeatureToPoint_management(parks_separated,park_points)
+
+maz_park_join2 = os.path.join(temp_dir, "maz_park_join2.shp")                                
+
+fieldmappings = arcpy.FieldMappings()
+fieldmappings.addTable(microzones_geom)
+fieldmappings.addTable(park_points)
+modFieldMapping(fieldmappings, "Park_Area", 'sum')
+
+arcpy.SpatialJoin_analysis(microzones_geom, park_points, maz_park_join2, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
+
+# merge park area field back to full table
+maz_park_join2_df = gpd.read_file(maz_park_join2)
+maz_park_join2_df =  maz_park_join2_df[['zone_id', "PARK_AREA"]]
+maz_remm_data = maz_remm_data.merge(maz_park_join2_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+
 
 #-------------------
 # Schools
@@ -571,10 +607,8 @@ arcpy.SpatialJoin_analysis(microzones_geom, enrollment_lyr, maz_ce_join, "JOIN_O
 # merge college enrollment field back to full table
 maz_ce_join_df = gpd.read_file(maz_ce_join) # Might have to fill in zeroes
 maz_ce_join_df =  maz_ce_join_df[['zone_id', 'Enrollment']]
+maz_ce_join_df.columns = ['zone_id', 'COLL_ENROL']
 maz_remm_data = maz_remm_data.merge(maz_ce_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
-
-
-
 
 #-------------------
 # trailheads 
@@ -586,13 +620,6 @@ maz_remm_data = maz_remm_data.merge(maz_ce_join_df, left_on = 'zone_id', right_o
 
 print("Working on trail heads...")
 trail_heads_lyr =  arcpy.MakeFeatureLayer_management(trail_heads, 'trail_heads')
-
-# add school score field if it doesn't exist
-# if not "trail_heads" in arcpy.ListFields(trail_heads_lyr):  
-#     arcpy.AddField_management(trail_heads_lyr, field_name="TRAIL_HEAD", field_type='LONG')
-
-# code for calculating trail head presence
-# arcpy.CalculateField_management(trail_heads_lyr, "TRAIL_HEAD", '1')
 
 # use spatial join to get trail head score on to microzones (maximum score in zone will be used)
 fieldmappings = arcpy.FieldMappings()
@@ -708,6 +735,43 @@ if delete_intermediate_layers == True:
     arcpy.Delete_management(out_table_csv)
     arcpy.Delete_management(out_p2r)
 
+#----------------------
+# Centroid Node 
+#----------------------
+
+print("Working on node centroids...")
+
+# add node ID to zones these ID will be from the node/link output
+maz_centroids = os.path.join(temp_dir, "maz_centroids.shp")   
+arcpy.FeatureToPoint_management(microzones_geom, maz_centroids)
+
+arcpy.Near_analysis(maz_centroids, nodes)
+
+# merge centroid field back to full table
+maz_centroid_join_df = gpd.read_file(maz_centroids) # Might have to fill in zeroes
+maz_centroid_join_df =  maz_centroid_join_df[['zone_id', 'NEAR_FID']]
+maz_centroid_join_df.columns = ['zone_id', 'NODE_ID']
+maz_remm_data = maz_remm_data.merge(maz_centroid_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+#----------------------
+# Total Jobs
+#----------------------
+
+print("Working on total jobs...")
+
+# create total jobs attribute
+maz_remm_data['jobs_total'] = maz_remm_data['jobs1']+ maz_remm_data['jobs3'] + maz_remm_data['jobs4'] +  maz_remm_data['jobs5'] + maz_remm_data['jobs6'] +  maz_remm_data['jobs7']
+
+
+#----------------------
+# Mixed Use 
+#----------------------
+
+print("Working on mixed use...")
+
+# create mixed use attribute (fill NAs from dividing by 0, with 0)
+maz_remm_data['MIXED_USE'] = (maz_remm_data['households'] * maz_remm_data['jobs_total']) / (maz_remm_data['households'] + maz_remm_data['jobs_total'])
+maz_remm_data['MIXED_USE'].fillna(0, inplace=True)
 
 
 #================================
@@ -718,18 +782,13 @@ if delete_intermediate_layers == True:
 final_zones = os.path.join(temp_dir, "microzones.shp")
 maz_remm_data.to_file(final_zones)
 
-
 # add area sq meters and sq miles
-print("Adding area calculations...")
+print("Working area square miles...")
+arcpy.AddField_management(final_zones, field_name="AREA_SQMIL", field_type='FLOAT')
+arcpy.CalculateGeometryAttributes_management(final_zones, [["area_sqmil", "AREA"]], area_unit='SQUARE_MILES_US')
 
-arcpy.AddField_management(final_zones, field_name="area_sqm", field_type='float')
-arcpy.AddField_management(final_zones, field_name="area_acres", field_type='float')
-
-with arcpy.da.UpdateCursor(final_zones, ['area_sqm', 'area_acres', 'SHAPE@AREA']) as cursor:
-    for row in cursor:
-        row[0] = row[2]
-        row[1] = row[2] * 0.000247105 # convert to acres
-        cursor.updateRow(row)
+# create csv version
+arcpy.TableToTable_conversion(final_zones, temp_dir, 'microzones.csv')
 
 print('Zones complete!!')
 
