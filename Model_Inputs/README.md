@@ -1,5 +1,5 @@
 ## Link Attributes  
-link_id: unique identifer  
+link_id: unique identifer    
 from_node: from node ID  
 from_x: From x-coordinate  
 from_y: From y-coordinate  
@@ -9,16 +9,26 @@ to_y: To y-coordinate
 Name: Street name  
 Oneway: Indicates if road is one-way  
 Speed: Speed limit in MPH  
-AutoNetwork: Indicates if link is part of Auto Network  
-BikeNetwork: Indicates if link is part of Bike Network  
-PedNetwork: Indicates if link is part of Pedestrian Network  
-DriveTime: (No longer reliable - To be removed)  
-BikeTime: (No longer reliable - To be removed)  
-Pedestrian: (No longer reliable - To be removed)  
-Length_Miles: Length in miles  
-RoadClass: road class  
+AutoNetwork: Indicates if link  is part of Auto Network  
+BikeNetwork: Indicates if link  is part of Bike Network   
+PedNetwork: Indicates if link  is part of Pedestrian Network  
+DriveTime:  
+BikeTime:
+Pedestrian: 
+Length_Miles: link length in miles  
+ConnectorN:  
+RoadClass:  road class  
 AADT: Average Annual Daily Traffic  
-Length_Meters: Length in meters  
+Length_Meters:  link length in miles 
+Signal: 1) link has traffic signal 0) link does not have traffic signal 
+Sig_Count: Number signals associated with link  
+from_z: elevation in meters at node A of link  
+to_z: elevation in meters at node B  of link  
+SlopeAB: Slope percentage (from node - to node)  
+SlopeBA: Slope percentage (to node - from node)  
+Bike_Path: Indicates whether link is a bike path (bike path class = '1','1A','1B','1C' or SourceData = 'Trails')  
+Bike_Lane: Indicates whether link is a bike lane (bike path class = '2','2A','2B', '3A')  
+Bike_Blvd: Indicates whether link is a bike boulevard (bike class = '3B' or '3C')  
 
 
 
