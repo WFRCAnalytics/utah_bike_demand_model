@@ -13,8 +13,14 @@ link_attributes_by_direction:
         - Slope_AB
         - Slope_BA
     bike_boulevard:
-        - BikeBlvd
-        - BikeBlvd
+        - Bike_Blvd
+        - Bike_Blvd
+    bike_path:
+        - Bike_Path
+        - Bike_Path
+    bike_lane:
+        - Bike_Lane
+        - Bike_Lane
     AADT:
         - AADT
         - AADT
@@ -40,7 +46,7 @@ route_varcoef_bike:
     # distance multipliers
     distance: 1.0
     bike_blvd_dist: -0.108
-    # bike_path: -0.16
+    bike_path_dist: -0.16
     prop_link_slope_2_4: 0.371
     prop_link_slope_4_6: 1.23
     prop_link_slope_6_plus: 3.239

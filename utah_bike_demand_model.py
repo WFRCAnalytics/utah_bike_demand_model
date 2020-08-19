@@ -66,7 +66,7 @@ def preprocess_network(net):
     # add new link attribute columns
     link_attrs = [
         'bike_blvd_dist', # OSM: cycleway="shared" OR LADOT: bikeway=("Route" OR "Shared Route",
-        # 'bike_path', # OSM: highway="cycleway" OR (highway="path" & bicycle="dedicated", OR LADOT: bikeway="Path"
+        'bike_path_dist', # OSM: highway="cycleway" OR (highway="path" & bicycle="dedicated", OR LADOT: bikeway="Path"
         'prop_link_slope_2_4', # 2-4% upslope in forward direction, downslope in backward direction
         'prop_link_slope_4_6', # 4-6% upslope in forward direction, downslope in backward direction
         'prop_link_slope_6_plus', # 6+% upslope in forward direction, downslope in backward direction
@@ -84,19 +84,16 @@ def preprocess_network(net):
             distance = net.get_link_attribute_value((a,b),'distance')
             slope = net.get_link_attribute_value((a,b), 'slope')
             bike_blvd = net.get_link_attribute_value((a,b), 'bike_boulevard')
+            bike_path = net.get_link_attribute_value((a,b), 'bike_path')
+            no_bike_lane = not net.get_link_attribute_value((a,b), 'bike_lane')
 
             aadt = net.get_link_attribute_value((a,b), 'AADT')
             light = 10e3 < aadt < 20e3
             med = 20e3 <= aadt < 30e3
             heavy = 30e3 <= aadt
 
-            # TODO: add these attributes to link file
-            slope = 0  # net.get_link_attribute_value((a,b),'slope')
-            bike_path = 0  # identifiers not in road_class
-            no_bike_lane = 0  # identifiers not in road_class
-
             net.set_link_attribute_value( (a,b), 'bike_blvd_dist', distance * bike_blvd )
-            # net.set_link_attribute_value( (a,b), 'bike_path', distance * bike_path )
+            net.set_link_attribute_value( (a,b), 'bike_path_dist', distance * bike_path )
             net.set_link_attribute_value( (a,b), 'prop_link_slope_2_4', distance * ( 2.0 < slope < 4.0 ) )
             net.set_link_attribute_value( (a,b), 'prop_link_slope_4_6', distance * ( 4.0 <= slope < 6.0 ) )
             net.set_link_attribute_value( (a,b), 'prop_link_slope_6_plus', distance * ( 6.0 <= slope ) )
