@@ -24,7 +24,7 @@ arcpy.CheckOutExtension("Spatial")
 
 
      
-Command line arguments
+# Command line arguments
 parser = argparse.ArgumentParser("Convert Multimodal Network to Node/Link format")
 parser.add_argument('multimodal_network', type=str, help='input multimodal network gdb from WFRC')
 parser.add_argument('mode', type=str, choices=['bike','ped', 'auto'], help='bike, auto, or ped')
@@ -92,7 +92,7 @@ print('Creating Nodes')
 print('--generating start points')
 
 # get start points for each line, 
-start_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'start_pts_intial.shp'), 'START')
+start_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'start_pts_initial.shp'), 'START')
 
 # Delete extra Start nodes, accounts for rare instance of multiple end nodes created
 print('--checking for extra start points')
@@ -133,7 +133,7 @@ arcpy.CalculateField_management(start_pts,"XY_Key",'"!{}!|!{}!"'.format('xcoord'
 print('--generating end points')
 
 # get end points for each line
-end_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'end_pts_intial.shp'), 'END')
+end_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'end_pts_initial.shp'), 'END')
 
 # Delete extra End nodes, accounts for rare instance of multiple end nodes created
 print('--checking for extra end points')
@@ -219,18 +219,64 @@ with arcpy.da.UpdateCursor(lines_copy_lyr, ['Length_Mil', 'Shape_Leng', 'SHAPE@L
         row[0] = row[2] * 0.000621371
         cursor.updateRow(row)    
 
-# Add Bike boulevard attribute
-arcpy.AddField_management(lines_copy_lyr, field_name="BikeBlvd", field_type='Short')
+# # Add Bike boulevard attribute
+# arcpy.AddField_management(lines_copy_lyr, field_name="BikeBlvd", field_type='Short')
 
-with arcpy.da.UpdateCursor(lines_copy_lyr, ['BIKE_L', 'BIKE_R', 'BikeBlvd']) as cursor:
-    for row in cursor:
+# with arcpy.da.UpdateCursor(lines_copy_lyr, ['BIKE_L', 'BIKE_R', 'BikeBlvd']) as cursor:
+#     for row in cursor:
         
-        if row[0] in ['3B', '3C']:
-            row[2] = 1
+#         if row[0] in ['3B', '3C']:
+#             row[2] = 1
+#         else:
+#             row[2] = 0
+            
+#         cursor.updateRow(row)
+
+#------------------------------------------------
+# Add bike_lane, bike_path, bike_blvd attributes
+#------------------------------------------------
+
+# Add bike_lane, bike_path, bike_blvd fields
+arcpy.AddField_management(lines_copy_lyr, field_name="Bike_Lane", field_type='Short')
+arcpy.AddField_management(lines_copy_lyr, field_name="Bike_Path", field_type='Short')
+arcpy.AddField_management(lines_copy_lyr, field_name="Bike_Blvd", field_type='Short')
+
+# bike lane codes
+bl = ['2','2A','2B', '3A']
+
+# bike path code
+bp = ['Trails', '1','1A','1B','1C']
+
+# bike blvd codes
+bb = ['3B', '3C']
+
+fields = ['BIKE_L', 'BIKE_R', 'SourceData', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']
+with arcpy.da.UpdateCursor(lines_copy_lyr, fields) as cursor:
+    for row in cursor:
+             
+        # set bike lane attribute
+        if row[0] in bl or row[1] in bl:
+            row[3] = 1
         else:
-            row[2] = 0
+            row[3] = 0
+            
+        # set bike path attribute
+        if row[2] in bp or row[0] in bp or row[1] in bp:
+            row[4] = 1
+        else:
+            row[4] = 0
+            
+        # set bike blvd attribute
+        if row[0] in bb or row[1] in bb:
+            row[5] = 1
+        else:
+            row[5] = 0
             
         cursor.updateRow(row)
+
+#------------------------------------------------
+# Add traffic signal attribute
+#------------------------------------------------
 
 # Load and buffer traffic signals
 traffic_signals = os.path.join(os.getcwd(), 'Data', 'Traffic_Signals.shp')
@@ -356,8 +402,8 @@ links_dataframe_temp['to_x'] = links_dataframe_temp['xcoord_y']
 links_dataframe_temp['to_y'] = links_dataframe_temp['ycoord_y']
 
 # subset and rename columns
-links_field_names = ['link_id', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name', 'Oneway', 'Speed', 'AutoNetwork', 'BikeNetwork','PedNetwork', 'DriveTime', 'BikeTime', 'Pedestrian', 'Length_Miles', 'ConnectorN', 'RoadClass', 'AADT', 'Length_Meters', 'Signal', 'Sig_Count', 'BIKE_L', 'BIKE_R', 'BikeBlvd']
-links_dataframe_formatted = links_dataframe_temp[['FID_x', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name_x', 'Oneway_x', 'Speed_x', 'AutoNetwor_x', 'BikeNetwor_x', 'PedNetwork_x', 'DriveTime_x', 'BikeTime_x', 'Pedestrian_x', 'Length_Mil_x', 'ConnectorN_x', 'RoadClass_x', 'AADT_x', 'Shape_Leng_x', 'Signal', 'Join_Count','BIKE_L', 'BIKE_R', 'BikeBlvd']].copy()
+links_field_names = ['link_id', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name', 'Oneway', 'Speed', 'AutoNetwork', 'BikeNetwork','PedNetwork', 'DriveTime', 'BikeTime', 'Pedestrian', 'Length_Miles', 'ConnectorN', 'RoadClass', 'AADT', 'Length_Meters', 'Signal', 'Sig_Count', 'BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']
+links_dataframe_formatted = links_dataframe_temp[['FID_x', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name_x', 'Oneway_x', 'Speed_x', 'AutoNetwor_x', 'BikeNetwor_x', 'PedNetwork_x', 'DriveTime_x', 'BikeTime_x', 'Pedestrian_x', 'Length_Mil_x', 'ConnectorN_x', 'RoadClass_x', 'AADT_x', 'Shape_Leng_x', 'Signal', 'Join_Count','BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']].copy()
 links_dataframe_formatted.columns = links_field_names
 links_dataframe_formatted = links_dataframe_formatted.sort_values(by=['link_id'])
 
@@ -368,31 +414,21 @@ links_dataframe_formatted = links_dataframe_formatted.sort_values(by=['link_id']
 
 if elevation:
     
-    # links_dataframe_formatted
-    links_df = pd.read_csv(r"E:\Projects\Network-To-Graph-Tool\Results\links.csv")
-    
-    # nodes_dataframe_formatted
-    nodes_df = pd.read_csv(r"E:\Projects\Network-To-Graph-Tool\Results\nodes.csv")
-    
-    ln_from = links_df.merge(nodes_dataframe_formatted, left_on = 'from_node', right_on = 'node_id' , how = 'inner')
+    ln_from = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'from_node', right_on = 'node_id' , how = 'inner')
     ln_from = ln_from[['link_id', 'zcoord']].copy()
     ln_from.columns = ['link_id', 'from_z']
-    
     
     ln_to = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'to_node', right_on = 'node_id' , how = 'inner')
     ln_to = ln_to[['link_id', 'zcoord']].copy()
     ln_to.columns = ['link_id', 'to_z']
     
-    
     links_df2 = links_dataframe_formatted.merge(ln_from, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
     links_df2 = links_df2.merge(ln_to, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
-    
     
     links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
     links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
 
     links_dataframe_formatted = links_df2
-
 
 #-------------------
 # format linkpoints
@@ -417,9 +453,15 @@ if create_linkpoints == True:
     linkpoints_dataframe_formatted = linkpoints_dataframe_formatted.sort_values(by=['linkpoint_id'])
 
 
+
+
+
 #-----------------
 # write final csvs
 #-----------------
+
+
+
 
 # export formatted csvs
 print('--exporting to csv')
@@ -434,7 +476,7 @@ if create_linkpoints == True:
 
 if perform_clean_up == True:
     print('Performing clean-up')
-    trash = [merged_pts, all_pts, lines_copy_lyr, lines_copy, start_pts, end_pts]
+    trash = [merged_pts, lines_copy_lyr, lines_copy, start_pts, end_pts]
     for item in trash:
         try:
             arcpy.Delete_management(item)
@@ -442,16 +484,16 @@ if perform_clean_up == True:
             print("--Unable to delete {}".format(item))
     del item 
         
-    # remove temp csvs
+   # remove temp csvs
     os.remove(os.path.join(temp_dir, 'nodes_temp.csv'))
     os.remove(os.path.join(temp_dir, 'links_temp.csv'))
-    os.remove(os.path.join(temp_dir, 'linkpoints_temp.csv'))
     os.remove(os.path.join(temp_dir, 'nodes_temp.csv.xml'))
     os.remove(os.path.join(temp_dir, 'links_temp.csv.xml'))
     if create_linkpoints == True:
+        os.remove(os.path.join(temp_dir, 'linkpoints_temp.csv'))
         os.remove(os.path.join(temp_dir, 'linkpoints_temp.csv.xml'))
     
-    del all_pts
+    
     del elevation
     del end_pts
     del lines_copy
@@ -465,7 +507,3 @@ if perform_clean_up == True:
         del linkpoints_layer
 
 print('Done!')
-
-
-# mz = pd.read_csv("E:\Projects\Create_Microzones\Output\microzones.csv")
-# node_frequency = mz['NODE_ID'].value_counts()
