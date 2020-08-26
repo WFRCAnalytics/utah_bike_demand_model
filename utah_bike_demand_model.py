@@ -70,6 +70,9 @@ def preprocess_network(net):
         'prop_link_slope_2_4', # 2-4% upslope in forward direction, downslope in backward direction
         'prop_link_slope_4_6', # 4-6% upslope in forward direction, downslope in backward direction
         'prop_link_slope_6_plus', # 6+% upslope in forward direction, downslope in backward direction
+        'bike_lane_light', # 10-20k AADT; bike lane
+        'bike_lane_med', # 20-30k AADT; bike lane
+        'bike_lane_heavy', # 30k+ AADT; bike lane
         'no_bike_lane_light', # 10-20k AADT; no bike lane
         'no_bike_lane_med', # 20-30k AADT; no bike lane
         'no_bike_lane_heavy', # 30k+ AADT; no bike lane
@@ -85,6 +88,7 @@ def preprocess_network(net):
             slope = net.get_link_attribute_value((a,b), 'slope')
             bike_blvd = net.get_link_attribute_value((a,b), 'bike_boulevard')
             bike_path = net.get_link_attribute_value((a,b), 'bike_path')
+            bike_lane = net.get_link_attribute_value((a,b), 'bike_lane') # New
             no_bike_lane = not net.get_link_attribute_value((a,b), 'bike_lane')
 
             aadt = net.get_link_attribute_value((a,b), 'AADT')
@@ -97,6 +101,9 @@ def preprocess_network(net):
             net.set_link_attribute_value( (a,b), 'prop_link_slope_2_4', distance * ( 2.0 < slope < 4.0 ) )
             net.set_link_attribute_value( (a,b), 'prop_link_slope_4_6', distance * ( 4.0 <= slope < 6.0 ) )
             net.set_link_attribute_value( (a,b), 'prop_link_slope_6_plus', distance * ( 6.0 <= slope ) )
+            net.set_link_attribute_value( (a,b), 'bike_lane_light', distance * (bike_lane and light ) ) # New
+            net.set_link_attribute_value( (a,b), 'bike_lane_med', distance * (bike_lane and med ) ) # New
+            net.set_link_attribute_value( (a,b), 'bike_lane_heavy', distance * (bike_lane and heavy ) ) # New
             net.set_link_attribute_value( (a,b), 'no_bike_lane_light', distance * ( no_bike_lane and light ) )
             net.set_link_attribute_value( (a,b), 'no_bike_lane_med', distance * ( no_bike_lane and med ) )
             net.set_link_attribute_value( (a,b), 'no_bike_lane_heavy', distance * ( no_bike_lane and heavy ) )
