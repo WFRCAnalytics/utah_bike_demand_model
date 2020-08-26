@@ -1,0 +1,6 @@
+# ignore generated csv files,
+Model_Inputs/*.csv
+# except input csvs
+!Model_Inputs/microzones.csv
+!Model_Inputs/nodes.csv
+!Model_Inputs/links.csv
