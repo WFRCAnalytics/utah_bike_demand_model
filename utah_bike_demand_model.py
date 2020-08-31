@@ -111,7 +111,6 @@ def preprocess_network(net):
     # add new dual (link-to-link) attribute columns
     net.add_dual_attribute('turn') # presence of a turn
     net.add_dual_attribute('stop_sign') # presence of a stop sighn
-    net.add_dual_attribute('traffic_signal') # presence of a traffic signal
     net.add_dual_attribute('cross_traffic_ls_light') # left turn or straight across light traffic; 5-10k AADT
     net.add_dual_attribute('cross_traffic_ls_med') # left turn or straight across medium traffic; 10-20k AADT
     net.add_dual_attribute('cross_traffic_ls_heavy') # left turn or straight across heavy traffic; 20k+ AADT
@@ -143,9 +142,8 @@ def preprocess_network(net):
 
             net.set_dual_attribute_value(link1,link2,'turn', 1 * (traversal_type in [3,4,5,6,7,9,10,11,13]) )
 
-            # TODO: add stop sign and traffic signal columns to input data
+            # TODO: add stop sign column to input data
             net.set_dual_attribute_value(link1,link2,'stop_sign',0)
-            net.set_dual_attribute_value(link1,link2,'traffic_signal',0)
 
             net.set_dual_attribute_value(link1,link2,'cross_traffic_ls_light', 1 * (cross_light and (l_turn or straight)) )
             net.set_dual_attribute_value(link1,link2,'cross_traffic_ls_med', 1 * (cross_med and (l_turn or straight)) )
