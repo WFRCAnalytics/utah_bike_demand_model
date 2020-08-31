@@ -88,8 +88,8 @@ def preprocess_network(net):
             slope = net.get_link_attribute_value((a,b), 'slope')
             bike_blvd = net.get_link_attribute_value((a,b), 'bike_boulevard')
             bike_path = net.get_link_attribute_value((a,b), 'bike_path')
-            bike_lane = net.get_link_attribute_value((a,b), 'bike_lane') # New
-            no_bike_lane = not net.get_link_attribute_value((a,b), 'bike_lane')
+            bike_lane = net.get_link_attribute_value((a,b), 'bike_lane')
+            no_bike_lane = not bike_lane
 
             aadt = net.get_link_attribute_value((a,b), 'AADT')
             light = 10e3 < aadt < 20e3

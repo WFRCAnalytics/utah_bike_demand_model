@@ -50,9 +50,9 @@ route_varcoef_bike:
     prop_link_slope_2_4: 0.371
     prop_link_slope_4_6: 1.23
     prop_link_slope_6_plus: 3.239
-    bike_lane_light:-0.15
-    bike_lane_med:.1
-    bike_lane_heavy: 1.5
+    bike_lane_light: 0
+    bike_lane_med: 0.25
+    bike_lane_heavy: 1.65
     no_bike_lane_light: 0.368
     no_bike_lane_med: 1.4
     no_bike_lane_heavy: 7.157
