@@ -40,12 +40,12 @@ Bike_Blvd: Indicates whether link is a bike boulevard (bike class = '3B' or '3C'
 *TDM: Wasatch Front Travel Demand Model (WFRC/MAG MPO Areas)*  
 *AGRC: Utah Automated Geographic Resource Center (gis.utah.gov)*  
 
-**Households**  
-Description: Number of households (residential units that are occupied)  
-Source: REMM  
-
 **Residentia**  
 Description: Number of residential units  
+Source: REMM  
+
+**Households**  
+Description: Number of households (residential units that are occupied)  
 Source: REMM  
 
 **Population**  
@@ -99,18 +99,6 @@ Source: TDM
 **ENROL_HIGH**  
 Description: High school enrollment  / population
 Source: TDM    
-
-**POP_LC1**  
-Description: Total Population LC1 (households with no children and seniors)  
-Source: TDM  
-
-**POP_LC2**  
-Description: Total Population LC2 (households with children and no seniors)  
-Source: TDM  
-
-**POP_LC3**  
-Description: Total Population LC3 (households with seniors and may have children)  
-Source: TDM  
 
 **HHSIZE_LC1**  
 Description: Mean Number of residents per household LC1 (households with no children and seniors)  
@@ -172,29 +160,37 @@ Source: AGRC
 Description: Presence of schools. 0) none, 1) Adult High, Residential Treatment, Alternative, Online 2) high schools, Higher Education 3) Elementary/Middle school,
 Source: AGRC  
 
+**COLL_ENROLL**  
+Description: 2019 enrollment estimates from  
+Source: various sources e.g. utah department of education  
+
 **TH_SCORE**  
 Description: Scores determining attractiveness of trailheads 3) very attractive 2) moderately attractive 1) slightly attractive 0) no trail head
 Source: AGRC 
-
-**LIGHT_RAIL**  
-Description: Presence of a light rail station  1) yes, 0) no  
-Source: AGRC  
 
 **COMM_RAIL**  
 Description: Presence of commuter rail station  1) yes, 0) no  
 Source: AGRC
 
+**LIGHT_RAIL**  
+Description: Presence of a light rail station  1) yes, 0) no  
+Source: AGRC 
+
 **GQU_RATIO**  
 Description: Percentage university student group quarters population by zone (group quarters / total population, where student housing is located)
 Source: American Community Survey  
 
-**COLL_ENROLL  
-Description: 2019 enrollment estimates from  
-Source: various sources e.g. utah department of education  
-
-**node_id**  
-Description: Central Node ID within microzone  
+**NODE_ID**  
+Description: Centroid Node ID within microzone (closest node to true zone centroid)
 Source: nodes dataset (converted from multimodal network)  
+
+**jobs_total**  
+Description: Total jobs (1,3,4,5,6,7,9,10)  
+Source: REMM  
+
+**MIXED_USE**  
+Description: (households * jobs_total) / (households + jobs_total)
+Source:  REMM  
 
 **AREA_SQMIL**  
 Description: Area in square miles  
