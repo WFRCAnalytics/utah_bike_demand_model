@@ -58,7 +58,6 @@ route_varcoef_bike:
     no_bike_lane_heavy: 7.157
 
     # additional fixed-distance link-to-link attributes
-    # TODO: convert to miles
     turn: 0.034  # presence of a turn
     stop_sign: 0.0037  # presence of a stop sighn
     traffic_signal: 0.017  # presence of a traffic signal
