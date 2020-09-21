@@ -1,5 +1,10 @@
 # Utah Bike Demand Model
 
+## Dependencies
+  - At least 32 gb of RAM
+  - Python 3.x
+  - [micromobility_toolset](https://github.com/RSGInc/micromobility_toolset)
+
 ## Quick start
 
   - download/clone repository
@@ -16,3 +21,14 @@
 
   - [meeting notes](https://github.com/RSGInc/utah_bike_demand_model/wiki)
   - [model design](Model_Design/wfrc_model_spec_070220.docx)
+  
+  
+## Toolsets
+
+1. Network to Graph (Node/Link)
+2. Create Microzones
+3. Utah Bike Demand Model
+    - Trip Generation
+    - Trip Distribution
+    - Trip Assignment
+4. Post-Process Bike Model Outputs
