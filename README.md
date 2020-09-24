@@ -19,8 +19,9 @@
 
 ## Documentation
 
-  - [meeting notes](https://github.com/RSGInc/utah_bike_demand_model/wiki)
-  - [model design](Model_Design/wfrc_model_spec_070220.docx)
+  - [Meeting Notes](https://github.com/RSGInc/utah_bike_demand_model/wiki)
+  - [Model Design](Model_Design/wfrc_model_spec_070220.docx)
+  - [Bike Model Coefficents Tracker](https://docs.google.com/spreadsheets/d/1lWqqHUEF0IOpqIgNil0gEWuN29oVjzCsLly4eeluqpA/edit?usp=sharing)
   
   
 ## Toolsets
