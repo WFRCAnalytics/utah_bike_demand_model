@@ -17,6 +17,7 @@ import arcpy
 import argparse
 import os
 import pandas as pd
+import geopandas as gpd
 from arcpy.sa import *
 
 arcpy.env.overwriteOutput = True
@@ -301,7 +302,7 @@ buffered_signals = os.path.join(temp_dir, "Buffered_Signals.shp")
 arcpy.Buffer_analysis(traffic_signals, buffered_signals, "20 Meters")
 
 # Perform spatial join
-links_final = os.path.join(temp_dir, "links.shp")
+links_final = os.path.join(temp_dir, "links_temp.shp")
 arcpy.SpatialJoin_analysis(lines_copy_lyr, buffered_signals, links_final, "JOIN_ONE_TO_ONE", "KEEP_ALL", match_option="INTERSECT")
 
 
@@ -448,6 +449,8 @@ if elevation:
     links_dataframe_formatted = links_df2
 
 
+
+
 #-------------------
 # format linkpoints
 #-------------------
@@ -474,12 +477,9 @@ if create_linkpoints == True:
 
 
 
-#-----------------
-# write final csvs
-#-----------------
-
-
-
+#------------------------------
+# write final csvs and shapes
+#------------------------------
 
 # export formatted csvs
 print('--exporting to csv')
@@ -487,6 +487,12 @@ nodes_dataframe_formatted.to_csv(os.path.join(temp_dir, 'nodes.csv'),index=False
 links_dataframe_formatted.to_csv(os.path.join(temp_dir, 'links.csv'),index=False)
 if create_linkpoints == True:
     linkpoints_dataframe_formatted.to_csv(os.path.join(temp_dir, 'linkpoints.csv'),index=False)
+
+
+# export links
+links = gpd.read_file(links_final)
+links = links.merge(pd.read_csv(os.path.join(temp_dir, 'links.csv')), left_on = 'id', right_on = 'link_id' , how = 'inner')
+links.to_file(os.path.join(temp_dir, 'links.shp'))
 
 # =====================================
 # Clean up

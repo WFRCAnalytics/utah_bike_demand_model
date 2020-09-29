@@ -93,6 +93,7 @@ trip_gen_zone_coefs:
 trip_gen_buffer_coefs:
     rec_long:
         households: 8.58e-07
+        TH_SCORE: .003
     rec_fam:
         ENROL_ELEM: 1.49e-06
         ENROL_MIDL: 1.49e-06
@@ -122,7 +123,7 @@ dest_choice_coefs:
     rec_long:
         #jobs9: 1.0
         #AREA_SQMIL: 69.6
-        TH_SCORE: 50
+        TH_SCORE: 300
         PARK_AREA: 11.6
     rec_fam:
         households: 0.79

@@ -14,4 +14,5 @@ buffer_cols:
     - ENROL_HIGH  # high school enrollment
     - COLL_ENROL  # university enrollment
     - PARK_SCORE
+    - TH_SCORE
     - MIXED_USE
