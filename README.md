@@ -26,7 +26,7 @@
   
 ## Toolsets
 
-1. Network to Graph (Node/Link)
+1. Convert Network
 2. Create Microzones
 3. Utah Bike Demand Model
     - Trip Generation

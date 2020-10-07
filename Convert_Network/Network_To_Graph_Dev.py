@@ -445,6 +445,7 @@ if elevation:
     
     links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
     links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
+    links_df2['Slope_Per'] = abs(links_df2['Slope_AB'])
 
     links_dataframe_formatted = links_df2
 
@@ -489,9 +490,10 @@ if create_linkpoints == True:
     linkpoints_dataframe_formatted.to_csv(os.path.join(temp_dir, 'linkpoints.csv'),index=False)
 
 
-# export links
+# export links to shapefile
 links = gpd.read_file(links_final)
-links = links.merge(pd.read_csv(os.path.join(temp_dir, 'links.csv')), left_on = 'id', right_on = 'link_id' , how = 'inner')
+links_data = pd.read_csv(os.path.join(temp_dir, 'links.csv'))[['link_id','from_z','to_z','Slope_AB','Slope_BA', 'Slope_Per']]
+links = links.merge(links_data, left_on = 'id', right_on = 'link_id' , how = 'inner')
 links.to_file(os.path.join(temp_dir, 'links.shp'))
 
 # =====================================

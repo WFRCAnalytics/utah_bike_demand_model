@@ -1,6 +1,12 @@
 # ignore generated csv files,
 Model_Inputs/*.csv
+
 # except input csvs
 !Model_Inputs/microzones.csv
 !Model_Inputs/nodes.csv
 !Model_Inputs/links.csv
+
+# except example outputs
+!Convert_Network/Results/links_example.csv
+!Convert_Network/Results/nodes_example.csv
+!Create_Microzones/Results/microzones_example.csv
