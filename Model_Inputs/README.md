@@ -20,7 +20,7 @@ ConnectorN:
 RoadClass:  road class  
 AADT: Average Annual Daily Traffic  
 Length_Meters:  link length in miles 
-Signal: 1) link has traffic signal 0) link does not have traffic signal 
+Signal: 1) link has traffic signal 0) link does not have traffic signal  
 Sig_Count: Number signals associated with link  
 from_z: elevation in meters at node A of link  
 to_z: elevation in meters at node B  of link  
