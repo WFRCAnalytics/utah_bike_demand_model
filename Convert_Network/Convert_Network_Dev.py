@@ -56,7 +56,7 @@ print("converting: {}...".format(network))
 
 
 # create linkpoints toggle
-create_linkpoints = False
+create_linkpoints = True
 
 # Store elevation dataset, if provided
 elevation = r'E:\Data\Elevation\wf_elev.tif'
@@ -502,7 +502,7 @@ links.to_file(os.path.join(temp_dir, 'links.shp'))
 
 if perform_clean_up == True:
     print('Performing clean-up')
-    trash = [merged_pts, lines_copy_lyr, lines_copy, start_pts, end_pts]
+    trash = [merged_pts, buffered_signals, lines_copy_lyr, lines_copy, lines_erased, start_pts, end_pts, os.path.join(temp_dir, 'start_pts_initial.shp'),  os.path.join(temp_dir, 'end_pts_initial.shp'), os.path.join(temp_dir, 'temp_lines.shp'), links_final]
     for item in trash:
         try:
             arcpy.Delete_management(item)
