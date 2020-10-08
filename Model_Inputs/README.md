@@ -26,6 +26,7 @@ from_z: elevation in meters at node A of link
 to_z: elevation in meters at node B  of link  
 SlopeAB: Slope percentage (from node - to node)  
 SlopeBA: Slope percentage (to node - from node)  
+Slope_Per: Absolute value of slope percentage  
 Bike_Path: Indicates whether link is a bike path (bike path class = '1','1A','1B','1C' or SourceData = 'Trails')  
 Bike_Lane: Indicates whether link is a bike lane (bike path class = '2','2A','2B', '3A')  
 Bike_Blvd: Indicates whether link is a bike boulevard (bike class = '3B' or '3C')  
