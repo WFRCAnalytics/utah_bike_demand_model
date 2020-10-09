@@ -28,11 +28,8 @@ remm_parcels = r"E:\Micromobility\Data\Zones\REMM_parcels_UTM12.shp"
 
 # From TDM
 taz_polygons = "E:\Micromobility\Data\Zones\TAZ_WFRC_UTM12.shp"
-#taz_se_data = r"E:\Micromobility\Data\Tables\taz_se831_2015.csv"
 taz_se_data = r"E:\Micromobility\Data\Tables\taz_se831_2019.csv"
-#taz_se_data2 = r"E:\Micromobility\Data\Tables\LifeCycle_Households_Population_2015_831.csv"
 taz_se_data2 = r"E:\Micromobility\Data\Tables\LifeCycle_Households_Population_2019_v8.3.1.csv"
-#taz_se_data3 = r"E:\Micromobility\Data\Tables\Marginal_Income_2019_v831.csv"
 taz_se_data3 = r"E:\Micromobility\Data\Tables\Marginal_Income_2019_v831.csv"
 
 # From Other sources
@@ -49,7 +46,7 @@ nodes = r"E:\Projects\Network-To-Graph-Tool\Results\nodes.shp"
 
 
 # Other
-temp_dir = os.path.join(os.getcwd(), 'Results')
+temp_dir = os.path.join(os.getcwd(), 'Outputs')
 delete_intermediate_layers = True
 
 #====================
@@ -225,7 +222,7 @@ maz_clipped = arcpy.Clip_analysis(merged_zones, taz_layer, microzones_geom)
 
 # Erase existing features pre drawn zones, then append those zones
 print("Adding canyon zones...")
-canyon_zones = r'.\Data\Canyon_Zones.shp'    
+canyon_zones = r'.\Inputs\Canyon_Zones.shp'    
 maz_erased = os.path.join(temp_dir, 'maz_erased.shp')
 arcpy.Erase_analysis(maz_clipped, canyon_zones, maz_erased)
 maz_and_canyons = os.path.join(temp_dir, 'maz_and canyons.shp')
@@ -793,6 +790,9 @@ arcpy.TableToTable_conversion(final_zones, temp_dir, 'microzones.csv')
 
 print('Zones complete!!')
 
+#=====================================
+# Clean up
+#=====================================
 
 print('Clean-up')
 arcpy.Delete_management(filled_zones)
@@ -800,6 +800,7 @@ arcpy.Delete_management(zones_layer)
 arcpy.Delete_management(zones_layer2) 
 arcpy.Delete_management(merged_roads) 
 arcpy.Delete_management(merged_zones) 
+arcpy.Delete_management(microzones_geom)
 arcpy.Delete_management(microzones_no_rings) 
 arcpy.Delete_management(microzones_rings_erased) 
 arcpy.Delete_management(prelim_zones) 
@@ -813,6 +814,8 @@ arcpy.Delete_management(out_table_csv)
 arcpy.Delete_management(out_p2r)
 arcpy.Delete_management(maz_ce_join)
 arcpy.Delete_management(maz_centroids)
+arcpy.Delete_management(maz_erased)
+arcpy.Delete_management(maz_and_canyons)
 arcpy.Delete_management(target_features)
 arcpy.Delete_management(maz_cr_join)
 arcpy.Delete_management(maz_lr_join)
@@ -836,7 +839,9 @@ del enrollment_lyr
 del fieldmappings
 del filled_zones
 del lr_lyr
+del maz_and_canyons
 del maz_clipped
+del maz_erased
 del maz_ce_join_df
 del maz_cr_join_df
 del maz_lr_join_df
@@ -844,6 +849,7 @@ del maz_park_join_df
 del merged_roads
 del merged_zones
 del microzones
+del microzones_geom
 del microzones_no_rings
 del microzones_rings_erased
 del parks_lyr

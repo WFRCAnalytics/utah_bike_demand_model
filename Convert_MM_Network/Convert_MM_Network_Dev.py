@@ -56,7 +56,7 @@ print("converting: {}...".format(network))
 
 
 # create linkpoints toggle
-create_linkpoints = False
+create_linkpoints = True
 
 # Store elevation dataset, if provided
 elevation = r'E:\Data\Elevation\wf_elev.tif'
@@ -339,7 +339,7 @@ if create_linkpoints == True:
     linkpoints_layer = arcpy.MakeFeatureLayer_management(all_pts,"all_pts_lyr")
     arcpy.AddField_management(linkpoints_layer, field_name="Join_Key", field_type='string')
     arcpy.AddJoin_management(linkpoints_layer, "XY_Key", nodes_final, 'XY_Key', join_type="KEEP_ALL")
-    arcpy.CalculateField_management(linkpoints_layer,"all_pts.Join_Key",'!{}!'.format('nodes.XY_Key'))
+    arcpy.CalculateField_management(linkpoints_layer,"all_pts.Join_Key",'!{}!'.format('nodes_draft.XY_Key'))
     arcpy.RemoveJoin_management(linkpoints_layer)
     arcpy.AddField_management(linkpoints_layer, field_name="zcoord", field_type='LONG')
     
@@ -502,7 +502,7 @@ links.to_file(os.path.join(temp_dir, 'links.shp'))
 
 if perform_clean_up == True:
     print('Performing clean-up')
-    trash = [merged_pts, buffered_signals, lines_copy_lyr, lines_copy, lines_erased, start_pts, end_pts, os.path.join(temp_dir, 'start_pts_initial.shp'),  os.path.join(temp_dir, 'end_pts_initial.shp'), os.path.join(temp_dir, 'temp_lines.shp'), links_final]
+    trash = [merged_pts, buffered_signals, lines_copy_lyr, lines_copy, lines_erased, start_pts, end_pts, os.path.join(temp_dir, 'start_pts_initial.shp'),  os.path.join(temp_dir, 'end_pts_initial.shp'), os.path.join(temp_dir, 'temp_lines.shp'), os.path.join(temp_dir, 'nodes_draft.shp'), links_final]
     for item in trash:
         try:
             arcpy.Delete_management(item)

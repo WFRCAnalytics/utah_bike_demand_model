@@ -1,8 +1,10 @@
 # Create Microzones for bike model
 
-**Steps**
+Create micro analysis zones from road centerlines data and attribute them using socio economic data from REMM and the Travel Demand Model  
 
-*Create microzones from utah roads network line features*  
+**Steps**
+1. Unzip input data from [Google Drive](https://drive.google.com/file/d/1Ovpx-hWZtIfUo2b2dqYNwQlRfErHONx6/view?usp=sharing) and place data layers in *Inputs folder
+
 
 Add attributes from REMM  
 - residences
