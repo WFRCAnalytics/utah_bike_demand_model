@@ -9,4 +9,5 @@ Model_Inputs/*.csv
 # except example outputs
 !Convert_Network/Results/links_example.csv
 !Convert_Network/Results/nodes_example.csv
+!Convert_Network/Results/linkpoints_example.csv
 !Create_Microzones/Results/microzones_example.csv
