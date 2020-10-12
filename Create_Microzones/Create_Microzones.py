@@ -23,25 +23,25 @@ arcpy.CheckOutExtension("Spatial")
 #==========================
  
 # From REMM
-remm_buildings = r"E:\Micromobility\Data\Tables\run1244year2019allbuildings.csv"
-remm_parcels = r"E:\Micromobility\Data\Zones\REMM_parcels_UTM12.shp"
+remm_buildings = r".\Inputs\run1244year2019allbuildings.csv"
+remm_parcels = r".\Inputs\REMM_parcels_UTM12.shp"
 
 # From TDM
-taz_polygons = "E:\Micromobility\Data\Zones\TAZ_WFRC_UTM12.shp"
-taz_se_data = r"E:\Micromobility\Data\Tables\taz_se831_2019.csv"
-taz_se_data2 = r"E:\Micromobility\Data\Tables\LifeCycle_Households_Population_2019_v8.3.1.csv"
-taz_se_data3 = r"E:\Micromobility\Data\Tables\Marginal_Income_2019_v831.csv"
+taz_polygons = ".\Inputs\TAZ_WFRC_UTM12.shp"
+taz_se_data = r".\Inputs\taz_se831_2019.csv"
+taz_se_data2 = r".\Inputs\LifeCycle_Households_Population_2019_v8.3.1.csv"
+taz_se_data3 = r".\Inputs\Marginal_Income_2019_v831.csv"
 
 # From Other sources
-roads = r"E:\Micromobility\Data\Multimodal_Network\Roads.shp"
-trail_heads = r"E:\Micromobility\Data\Attributes\Trailheads.shp"
-schools = r"E:\Micromobility\Data\Attributes\Schools.shp"
-light_rail_stops = r"E:\Micromobility\Data\Attributes\LightRailStations_UTA.shp"
-parks = r"E:\Micromobility\Data\Attributes\ParksLocal.shp"
-commuter_rail_stops = r"E:\Micromobility\Data\Attributes\CommuterRailStations_UTA.shp"
-enrollment = r"E:\Micromobility\Data\Attributes\College_Enrollment.shp"
-group_quarters = r"E:\Micromobility\Data\Attributes\Group_Quarters_BlockGroup_2014_2018.shp"
-nodes = r"E:\Projects\Network-To-Graph-Tool\Results\nodes.shp"
+roads = r".\Inputs\Roads.shp"
+trail_heads = r".\Inputs\Trailheads.shp"
+schools = r".\Inputs\Schools.shp"
+light_rail_stops = r".\Inputs\LightRailStations_UTA.shp"
+parks = r".\Inputs\ParksLocal.shp"
+commuter_rail_stops = r".\Inputs\CommuterRailStations_UTA.shp"
+enrollment = r".\Inputs\College_Enrollment.shp"
+group_quarters = r".\Inputs\Group_Quarters_BlockGroup_2014_2018.shp"
+nodes = r"..\Convert_MM_Network\Outputs\nodes.shp"
 
 
 
@@ -201,7 +201,7 @@ arcpy.SelectLayerByAttribute_management(filled_zones, "NEW_SELECTION", query)
 microzones_rings_erased = arcpy.Erase_analysis(zones_eliminated2, filled_zones, os.path.join(temp_dir, 'zones_erased.shp'))
 
 # add missing zones back
-merged_zones = arcpy.Merge_management([microzones_rings_erased, filled_zones], os.path.join(temp_dir, 'merged_zones.shp'))
+arcpy.Merge_management([microzones_rings_erased, filled_zones], os.path.join(temp_dir, 'merged_zones.shp'))
 
 
 
@@ -213,7 +213,7 @@ taz_layer = arcpy.MakeFeatureLayer_management(taz_polygons, 'tazs')
 query = """not "tazid" in(688, 689,1339, 1340, 2870, 2871, 2872, 1789, 1913, 1914, 1915, 1916, 2854)"""
 arcpy.SelectLayerByAttribute_management(taz_layer, "NEW_SELECTION", query)
 microzones_geom =  os.path.join(temp_dir, "maz_clipped.shp")
-maz_clipped = arcpy.Clip_analysis(merged_zones, taz_layer, microzones_geom)
+maz_clipped = arcpy.Clip_analysis(os.path.join(temp_dir, 'merged_zones.shp'), taz_layer, microzones_geom)
 
 
 #==========================
@@ -798,8 +798,7 @@ print('Clean-up')
 arcpy.Delete_management(filled_zones)
 arcpy.Delete_management(zones_layer) 
 arcpy.Delete_management(zones_layer2) 
-arcpy.Delete_management(merged_roads) 
-arcpy.Delete_management(merged_zones) 
+arcpy.Delete_management(merged_roads)  
 arcpy.Delete_management(microzones_geom)
 arcpy.Delete_management(microzones_no_rings) 
 arcpy.Delete_management(microzones_rings_erased) 
@@ -847,7 +846,6 @@ del maz_cr_join_df
 del maz_lr_join_df
 del maz_park_join_df
 del merged_roads
-del merged_zones
 del microzones
 del microzones_geom
 del microzones_no_rings
