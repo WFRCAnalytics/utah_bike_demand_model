@@ -118,3 +118,70 @@
 2020-10-01 19:12:19,050 - Utah Base Scenario - INFO - bike miles traveled: 2816394
 2020-10-01 19:12:19,050 - Utah Base Scenario - INFO - writing results to bike_vol.csv...
 2020-10-01 19:12:19,843 - Utah Base Scenario - INFO - done.
+2020-12-01 18:05:40,063 - Utah Base Scenario - INFO - performing calculations...
+2020-12-01 18:05:40,079 - Utah Base Scenario - INFO - skimming bike skim from network...
+2020-12-01 18:05:40,079 - Utah Base Scenario - INFO - creating network ...
+2020-12-01 18:06:56,339 - Utah Base Scenario - INFO - performing calculations...
+2020-12-01 18:06:56,344 - Utah Base Scenario - INFO - skimming bike skim from network...
+2020-12-01 18:06:56,344 - Utah Base Scenario - INFO - creating network ...
+2020-12-01 18:18:38,069 - Utah Base Scenario - INFO - performing calculations...
+2020-12-01 18:18:38,075 - Utah Base Scenario - INFO - skimming bike skim from network...
+2020-12-01 18:18:38,075 - Utah Base Scenario - INFO - creating network ...
+2020-12-02 03:03:23,554 - Utah Base Scenario - INFO - saving bike skim to Model_Inputs...
+2020-12-02 03:06:10,748 - Utah Base Scenario - INFO - rec_long home-based trips: 21095
+2020-12-02 03:12:23,239 - Utah Base Scenario - INFO - rec_long non-home-based trips: 10547
+2020-12-02 03:15:33,630 - Utah Base Scenario - INFO - rec_fam home-based trips: 7524
+2020-12-02 03:16:55,659 - Utah Base Scenario - INFO - rec_fam non-home-based trips: 4123
+2020-12-02 03:22:50,175 - Utah Base Scenario - INFO - rec_oth home-based trips: 12893
+2020-12-02 03:23:47,465 - Utah Base Scenario - INFO - rec_oth non-home-based trips: 7581
+2020-12-02 08:50:20,136 - Utah Base Scenario - INFO - performing calculations...
+2020-12-02 08:50:20,146 - Utah Base Scenario - INFO - skimming bike skim from network...
+2020-12-02 08:50:20,146 - Utah Base Scenario - INFO - creating network ...
+2020-12-02 18:08:54,474 - Utah Base Scenario - INFO - saving bike skim to Model_Inputs...
+2020-12-02 18:11:49,052 - Utah Base Scenario - INFO - rec_long home-based trips: 21095
+2020-12-02 18:13:23,624 - Utah Base Scenario - INFO - rec_long non-home-based trips: 10547
+2020-12-02 18:15:30,228 - Utah Base Scenario - INFO - rec_fam home-based trips: 7524
+2020-12-02 18:16:48,522 - Utah Base Scenario - INFO - rec_fam non-home-based trips: 4123
+2020-12-02 18:19:16,393 - Utah Base Scenario - INFO - rec_oth home-based trips: 12893
+2020-12-02 18:20:35,582 - Utah Base Scenario - INFO - rec_oth non-home-based trips: 7581
+2020-12-02 18:22:37,997 - Utah Base Scenario - INFO - work home-based trips: 74108
+2020-12-02 18:23:59,363 - Utah Base Scenario - INFO - work non-home-based trips: 56544
+2020-12-02 18:25:58,989 - Utah Base Scenario - INFO - sch_grade home-based trips: 23313
+2020-12-02 18:27:28,331 - Utah Base Scenario - INFO - sch_grade non-home-based trips: 3940
+2020-12-02 18:29:32,595 - Utah Base Scenario - INFO - sch_univ home-based trips: 6089
+2020-12-02 18:30:37,420 - Utah Base Scenario - INFO - sch_univ non-home-based trips: 4567
+2020-12-02 18:32:18,290 - Utah Base Scenario - INFO - maint home-based trips: 55436
+2020-12-02 19:29:07,241 - Utah Base Scenario - INFO - performing calculations...
+2020-12-02 19:29:07,257 - Utah Base Scenario - INFO - skimming bike skim from network...
+2020-12-02 19:29:07,257 - Utah Base Scenario - INFO - creating network ...
+2020-12-03 02:10:17,604 - Utah Base Scenario - INFO - saving bike skim to Model_Inputs...
+2020-12-03 02:11:38,510 - Utah Base Scenario - INFO - rec_long home-based trips: 20990
+2020-12-03 02:12:19,449 - Utah Base Scenario - INFO - rec_long non-home-based trips: 10495
+2020-12-03 02:13:15,615 - Utah Base Scenario - INFO - rec_fam home-based trips: 7506
+2020-12-03 02:13:57,125 - Utah Base Scenario - INFO - rec_fam non-home-based trips: 4113
+2020-12-03 02:14:53,262 - Utah Base Scenario - INFO - rec_oth home-based trips: 12367
+2020-12-03 02:15:21,836 - Utah Base Scenario - INFO - rec_oth non-home-based trips: 7272
+2020-12-03 02:16:05,600 - Utah Base Scenario - INFO - work home-based trips: 73097
+2020-12-03 02:16:46,655 - Utah Base Scenario - INFO - work non-home-based trips: 55773
+2020-12-03 02:17:42,536 - Utah Base Scenario - INFO - sch_grade home-based trips: 23255
+2020-12-03 02:18:23,470 - Utah Base Scenario - INFO - sch_grade non-home-based trips: 3930
+2020-12-03 02:19:19,537 - Utah Base Scenario - INFO - sch_univ home-based trips: 6089
+2020-12-03 02:19:38,844 - Utah Base Scenario - INFO - sch_univ non-home-based trips: 4567
+2020-12-03 02:20:13,275 - Utah Base Scenario - INFO - maint home-based trips: 55307
+2020-12-03 02:20:55,625 - Utah Base Scenario - INFO - maint non-home-based trips: 23118
+2020-12-03 02:21:54,882 - Utah Base Scenario - INFO - disc home-based trips: 35705
+2020-12-03 02:22:37,664 - Utah Base Scenario - INFO - disc non-home-based trips: 11390
+2020-12-03 02:23:22,631 - Utah Base Scenario - INFO - performing calculations
+2020-12-03 02:23:26,128 - Utah Base Scenario - INFO - rec_long trips: 31486.14
+2020-12-03 02:23:31,305 - Utah Base Scenario - INFO - rec_fam trips: 11620.82
+2020-12-03 02:23:34,751 - Utah Base Scenario - INFO - rec_oth trips: 19639.65
+2020-12-03 02:23:38,080 - Utah Base Scenario - INFO - work trips: 128871.05
+2020-12-03 02:23:41,385 - Utah Base Scenario - INFO - sch_grade trips: 27186.24
+2020-12-03 02:23:44,709 - Utah Base Scenario - INFO - sch_univ trips: 10656.34
+2020-12-03 02:23:48,013 - Utah Base Scenario - INFO - maint trips: 78426.48
+2020-12-03 02:23:51,263 - Utah Base Scenario - INFO - disc trips: 47095.58
+2020-12-03 02:23:52,356 - Utah Base Scenario - INFO - trip sum: 354982
+2020-12-03 02:23:52,356 - Utah Base Scenario - INFO - assigning trips to network...
+2020-12-03 09:16:44,896 - Utah Base Scenario - INFO - bike miles traveled: 2690140
+2020-12-03 09:16:44,896 - Utah Base Scenario - INFO - writing results to bike_vol.csv...
+2020-12-03 09:16:50,047 - Utah Base Scenario - INFO - done.

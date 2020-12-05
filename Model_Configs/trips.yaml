@@ -56,105 +56,105 @@ trip_gen_consts:
 # trip-gen coefficients for zone attributes
 trip_gen_zone_coefs:
     rec_long:
-        INC1: 0.019
-        INC4: 0.033
+        inc1: 0.019
+        inc4: 0.033
     rec_fam:
-        INC1: 0.012
-        INC4: 0.011
+        inc1: 0.012
+        inc4: 0.011
     rec_oth:
-        INC1: 0.015
-        INC4: 0.022
-        PCT_POPLC2: -0.069
+        inc1: 0.015
+        inc4: 0.022
+        pct_poplc2: -0.069
     work:
-        INC1: 0.015
-        INC4: 0.071
-        PCT_AG1: -0.16
-        PCT_AG3: -0.068
+        inc1: 0.015
+        inc4: 0.071
+        pct_ag1: -0.16
+        pct_ag3: -0.068
     sch_grade:
-        INC1: 0.007
-        INC4: 0.048
+        inc1: 0.007
+        inc4: 0.048
     sch_univ:
-        INC1: 0.031
-        INC4: -0.167
-        PCT_POPLC3: -0.015
-        PCT_AG1: -0.167
+        inc1: 0.031
+        inc4: -0.167
+        pct_poplc3: -0.015
+        pct_ag1: -0.167
     maint:
-        INC1: 0.107
-        INC4: 0.124
-        PCT_AG1: -0.142
-        PCT_AG3: -0.047
+        inc1: 0.107
+        inc4: 0.124
+        pct_ag1: -0.142
+        pct_ag3: -0.047
     disc:
-        INC1: 0.077
-        INC4: 0.092
-        PCT_AG1: -0.167
-        PCT_AG3: -0.047
+        inc1: 0.077
+        inc4: 0.092
+        pct_ag1: -0.167
+        pct_ag3: -0.047
 
 # trip-gen coefficients for buffered zone attributes
 trip_gen_buffer_coefs:
     rec_long:
         households: 8.58e-07
-        TH_SCORE: .003
+        th_score: .003
     rec_fam:
-        ENROL_ELEM: 1.49e-06
-        ENROL_MIDL: 1.49e-06
-        ENROL_HIGH: 1.49e-06
+        enrol_elem: 1.49e-06
+        enrol_midl: 1.49e-06
+        enrol_high: 1.49e-06
     rec_oth:
-        PARK_SCORE: 0.002
+        park_score: 0.002
     work:
         jobs3: 1.81e-05
         jobs4: 2.96e-06
         jobs5: -7.73e-06
         jobs6: -1.49e-05
-        PARK_SCORE: 0.003
-        MIXED_USE: 6.17e-06
+        park_score: 0.003
+        mixed_use: 6.17e-06
     sch_grade:
-        ENROL_ELEM: 1.72e-06
-        ENROL_MIDL: 1.72e-06
-        ENROL_HIGH: 1.72e-06
+        enrol_elem: 1.72e-06
+        enrol_midl: 1.72e-06
+        enrol_high: 1.72e-06
     sch_univ:
-        COLL_ENROL: 2.08e-06
+        coll_enrol: 2.08e-06
     maint:
-        COLL_ENROL: 2.22e-06
-        MIXED_USE: 2.24e-06
+        coll_enrol: 2.22e-06
+        mixed_use: 2.24e-06
     disc:
-        MIXED_USE: 3.13e-06
+        mixed_use: 3.13e-06
 
 dest_choice_coefs:
     rec_long:
         #jobs9: 1.0
-        #AREA_SQMIL: 69.6
-        TH_SCORE: 300
-        PARK_AREA: 11.6
+        #area_sqmil: 69.6
+        th_score: 300
+        park_area: 11.6
     rec_fam:
         households: 0.79
-        ENROL_ELEM: 1.0
-        ENROL_MIDL: 1.0
-        ENROL_HIGH: 1.0
-        PARK_SCORE: 200
+        enrol_elem: 1.0
+        enrol_midl: 1.0
+        enrol_high: 1.0
+        park_score: 200
     rec_oth:
         jobs3: 1.0
-        PARK_SCORE: 4.77
-        #AREA_SQMIL: 234.6
+        park_score: 4.77
+        #area_sqmil: 234.6
     work:
         jobs_total: 1.0
         jobs3: 2.69
     sch_grade:
         jobs3: 0.31
-        ENROL_ELEM: 1.0
-        ENROL_MIDL: 1.0
-        ENROL_HIGH: 1.0
+        enrol_elem: 1.0
+        enrol_midl: 1.0
+        enrol_high: 1.0
     sch_univ:
         #jobs3: 4.13
-        COLL_ENROL: 1.0
+        coll_enrol: 1.0
     maint:
         jobs9: 1.0
         jobs6: 0.07
         jobs4: 0.02
         jobs7: 0.29
         households: 0.09
-        ENROL_ELEM: 0.11
-        ENROL_MIDL: 0.11
-        ENROL_HIGH: 0.11
+        enrol_elem: 0.11
+        enrol_midl: 0.11
+        enrol_high: 0.11
     disc:
         jobs3: 0.35
         jobs9: 1.0

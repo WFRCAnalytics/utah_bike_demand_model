@@ -12,7 +12,7 @@ Requires data set folder
 import arcpy
 import os
 import pandas as pd
-import geopandas as gpd
+from arcgis.features import GeoAccessor, GeoSeriesAccessor
 import numpy as np
 arcpy.env.overwriteOutput = True
 arcpy.CheckOutExtension("Spatial")
@@ -41,9 +41,10 @@ parks = r".\Inputs\ParksLocal.shp"
 commuter_rail_stops = r".\Inputs\CommuterRailStations_UTA.shp"
 enrollment = r".\Inputs\College_Enrollment.shp"
 group_quarters = r".\Inputs\Group_Quarters_BlockGroup_2014_2018.shp"
+industrial_districts = r".\Inputs\Industrial_Districts.shp"
+bike_kiosks = r".\Inputs\GREENbike_kiosk_buffer.shp"
 nodes = r"..\Convert_MM_Network\Outputs\nodes.shp"
-
-
+network = r"..\Convert_MM_Network\Outputs\links.shp"
 
 # Other
 temp_dir = os.path.join(os.getcwd(), 'Outputs')
@@ -204,9 +205,6 @@ microzones_rings_erased = arcpy.Erase_analysis(zones_eliminated2, filled_zones, 
 arcpy.Merge_management([microzones_rings_erased, filled_zones], os.path.join(temp_dir, 'merged_zones.shp'))
 
 
-
-
-
 # Clip microzones using determined (good) tazs
 print('Clipping out bad TAZ areas...')
 taz_layer = arcpy.MakeFeatureLayer_management(taz_polygons, 'tazs')
@@ -227,7 +225,6 @@ maz_erased = os.path.join(temp_dir, 'maz_erased.shp')
 arcpy.Erase_analysis(maz_clipped, canyon_zones, maz_erased)
 maz_and_canyons = os.path.join(temp_dir, 'maz_and canyons.shp')
 arcpy.Merge_management([canyon_zones, maz_erased], maz_and_canyons)
-
 
 #==========================
 # Finishing up
@@ -293,15 +290,15 @@ buildings_filtered = buildings[['parcel_id', 'parcel_acres','residential_units',
 buildings_grouped = buildings_filtered.groupby('parcel_id', as_index=False).sum()
 
 # read in parcel features
-parcels = gpd.read_file(remm_parcels)
-parcels = parcels[['parcel_id', 'geometry']]
+parcels = pd.DataFrame.spatial.from_featureclass(remm_parcels)
+parcels = parcels[['parcel_id', 'SHAPE']]
 
 #  join to aggregated buildings
 parcels_join = parcels.merge(buildings_grouped, left_on = 'parcel_id', right_on = 'parcel_id' , how = 'inner')
 
 # export to shape
 parcels_aggd_buildings = os.path.join(temp_dir, "parcels_with_aggd_buildings_data.shp")
-parcels_join.to_file(parcels_aggd_buildings)
+parcels_join.spatial.to_featureclass(location=parcels_aggd_buildings)
 
 # convert parcels to points centroids
 print('Converting parcels to points...')
@@ -328,12 +325,12 @@ print('Joining parcel data to microzones...')
 arcpy.SpatialJoin_analysis(target_features, join_features, output_features, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "CONTAINS")
 
 # Select fields
-maz_remm_data = gpd.read_file(output_features)
-maz_remm_data = maz_remm_data[['zone_id', 'CO_TAZID', 'TAZID', 'CO_FIPS', 'CO_NAME', 'residentia', 'households', 'population', 'jobs1', 'jobs3', 'jobs4', 'jobs5', 'jobs6', 'jobs7', 'jobs9', 'jobs10', 'geometry']]
+maz_remm_data = pd.DataFrame.spatial.from_featureclass(output_features)
+maz_remm_data = maz_remm_data[['zone_id', 'CO_TAZID', 'TAZID', 'CO_FIPS', 'CO_NAME', 'residentia', 'households', 'population', 'jobs1', 'jobs3', 'jobs4', 'jobs5', 'jobs6', 'jobs7', 'jobs9', 'jobs10', 'SHAPE']]
 
 # export to shape
 maz_output = os.path.join(temp_dir, "microzones_with_remm_data.shp")
-maz_remm_data.to_file(maz_output)
+maz_remm_data.spatial.to_featureclass(location=maz_output)
 
 # Free up memory
 del buildings
@@ -341,6 +338,15 @@ del buildings_filtered
 del buildings_grouped
 del parcels
 del parcels_join
+
+#----------------------
+# Total Jobs
+#----------------------
+
+print("Working on total jobs...")
+
+# create total jobs attribute
+maz_remm_data['jobs_total'] = maz_remm_data['jobs1']+ maz_remm_data['jobs3'] + maz_remm_data['jobs4'] +  maz_remm_data['jobs5'] + maz_remm_data['jobs6'] +  maz_remm_data['jobs7']
 
 #==================================
 # Disaggregate TAZ level SE data
@@ -382,7 +388,7 @@ taz_se_data3 = pd.read_csv(taz_se_data3)
 taz_se_data3['CO_TAZID'] = taz_se_data3['CO_TAZID'].astype(str)
 
 # read in taz polygons
-taz_geometry = gpd.read_file(taz_polygons)
+taz_geometry = pd.DataFrame.spatial.from_featureclass(taz_polygons)
 taz_geometry['CO_TAZID'] = taz_geometry['CO_TAZID'].astype(str)
 
 # join se data to taz polygons 
@@ -392,11 +398,11 @@ taz_join3 = taz_join2.merge(taz_se_data3, left_on = 'CO_TAZID', right_on = 'CO_T
 
 
 # filter to desired columns
-taz_join_filt = taz_join3[['CO_TAZID', 'TAZID_x' , 'geometry', 'AVGINCOME','ENROL_ELEM', 'ENROL_MIDL','ENROL_HIGH', 'POP_LC1', 'POP_LC2', 'POP_LC3', 'HHSIZE_LC1', 'HHSIZE_LC2', 'HHSIZE_LC3', 'PCT_POPLC1', 'PCT_POPLC2', 'PCT_POPLC3', 'PCT_AG1', 'PCT_AG2', 'PCT_AG3', 'INC1', 'INC2', 'INC3', 'INC4']]
+taz_join_filt = taz_join3[['CO_TAZID', 'TAZID_x' , 'SHAPE', 'AVGINCOME','ENROL_ELEM', 'ENROL_MIDL','ENROL_HIGH', 'POP_LC1', 'POP_LC2', 'POP_LC3', 'HHSIZE_LC1', 'HHSIZE_LC2', 'HHSIZE_LC3', 'PCT_POPLC1', 'PCT_POPLC2', 'PCT_POPLC3', 'PCT_AG1', 'PCT_AG2', 'PCT_AG3', 'INC1', 'INC2', 'INC3', 'INC4']]
 
 # export taz data to shape
 out_taz_data = os.path.join(temp_dir, "taz_with_se_data.shp")
-taz_join_filt.to_file(out_taz_data)
+taz_join_filt.spatial.to_featureclass(location=out_taz_data)
 
 # Distribute attributes larger TAZ attributes to MAZ, using rasters and zonal stats
 taz_fields = ['AVGINCOME','ENROL_ELEM', 'ENROL_MIDL','ENROL_HIGH', 'HHSIZE_LC1', 'HHSIZE_LC2', 'HHSIZE_LC3', 'PCT_POPLC1', 'PCT_POPLC2', 'PCT_POPLC3', 'PCT_AG1', 'PCT_AG2', 'PCT_AG3', 'INC1', 'INC2', 'INC3', 'INC4']
@@ -495,7 +501,7 @@ maz_park_join = os.path.join(temp_dir, "maz_park_join.shp")
 arcpy.SpatialJoin_analysis(microzones, parks_lyr, maz_park_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge park score field back to full table
-maz_park_join_df = gpd.read_file(maz_park_join)
+maz_park_join_df = pd.DataFrame.spatial.from_featureclass(maz_park_join)
 maz_park_join_df =  maz_park_join_df[['zone_id', "PARK_SCORE"]]
 maz_remm_data = maz_remm_data.merge(maz_park_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
@@ -530,7 +536,7 @@ modFieldMapping(fieldmappings, "Park_Area", 'sum')
 arcpy.SpatialJoin_analysis(microzones, park_points, maz_park_join2, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge park area field back to full table
-maz_park_join2_df = gpd.read_file(maz_park_join2)
+maz_park_join2_df = pd.DataFrame.spatial.from_featureclass(maz_park_join2)
 maz_park_join2_df =  maz_park_join2_df[['zone_id', "PARK_AREA"]]
 maz_remm_data = maz_remm_data.merge(maz_park_join2_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
@@ -581,7 +587,7 @@ maz_school_join = os.path.join(temp_dir, "maz_schools_join.shp")
 arcpy.SpatialJoin_analysis(microzones, schools, maz_school_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge school score field back to full table
-maz_school_join_df = gpd.read_file(maz_school_join)
+maz_school_join_df = pd.DataFrame.spatial.from_featureclass(maz_school_join)
 maz_school_join_df =  maz_school_join_df[['zone_id', "SCHOOL_CD"]]
 maz_remm_data = maz_remm_data.merge(maz_school_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
@@ -606,7 +612,7 @@ maz_ce_join = os.path.join(temp_dir, "maz_ce_join.shp")
 arcpy.SpatialJoin_analysis(microzones, enrollment_lyr, maz_ce_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge college enrollment field back to full table
-maz_ce_join_df = gpd.read_file(maz_ce_join) # Might have to fill in zeroes
+maz_ce_join_df = pd.DataFrame.spatial.from_featureclass(maz_ce_join) # Might have to fill in zeroes
 maz_ce_join_df =  maz_ce_join_df[['zone_id', 'Enrollment']]
 maz_ce_join_df.columns = ['zone_id', 'COLL_ENROL']
 maz_remm_data = maz_remm_data.merge(maz_ce_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
@@ -632,7 +638,7 @@ maz_th_join = os.path.join(temp_dir, "maz_th_join.shp")
 arcpy.SpatialJoin_analysis(microzones, trail_heads_lyr, maz_th_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge park score field back to full table
-maz_th_join_df = gpd.read_file(maz_th_join) # Might have to fill in zeroes
+maz_th_join_df = pd.DataFrame.spatial.from_featureclass(maz_th_join) # Might have to fill in zeroes
 maz_th_join_df =  maz_th_join_df[['zone_id', 'TH_SCORE']]
 maz_remm_data = maz_remm_data.merge(maz_th_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
@@ -664,7 +670,7 @@ maz_cr_join = os.path.join(temp_dir, "maz_cr_join.shp")
 arcpy.SpatialJoin_analysis(microzones, cr_lyr, maz_cr_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge park score field back to full table
-maz_cr_join_df = gpd.read_file(maz_cr_join) # Might have to fill in zeroes
+maz_cr_join_df = pd.DataFrame.spatial.from_featureclass(maz_cr_join) # Might have to fill in zeroes
 maz_cr_join_df =  maz_cr_join_df[['zone_id', 'COMM_RAIL']]
 maz_remm_data = maz_remm_data.merge(maz_cr_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
@@ -698,7 +704,7 @@ maz_lr_join = os.path.join(temp_dir, "maz_lr_join.shp")
 arcpy.SpatialJoin_analysis(microzones, lr_lyr, maz_lr_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
 
 # merge park score field back to full table
-maz_lr_join_df = gpd.read_file(maz_lr_join) # Might have to fill in zeroes
+maz_lr_join_df = pd.DataFrame.spatial.from_featureclass(maz_lr_join) # Might have to fill in zeroes
 maz_lr_join_df =  maz_lr_join_df[['zone_id', 'LIGHT_RAIL']]
 maz_remm_data = maz_remm_data.merge(maz_lr_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
@@ -731,7 +737,67 @@ zonal_table['zone_id'] = zonal_table['zone_id'].astype(str)
 maz_remm_data = maz_remm_data.merge(zonal_table, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 
+#----------------------
+# Mixed-Use 
+#----------------------
 
+print("Working on mixed use...")
+
+# create mixed use attribute (fill NAs and infinites from dividing by 0, with 0)
+maz_remm_data['MIXED_USE'] = ((maz_remm_data['households'] * maz_remm_data['jobs_total']) / (maz_remm_data['households'] + maz_remm_data['jobs_total'])).replace(np.inf, 0)
+maz_remm_data['MIXED_USE'].fillna(0, inplace=True)
+
+#-------------------
+# Bikeshare
+#-------------------
+
+"""
+general attractiveness of greenbike kiosk areas 
+ 1) least attractive 3) somewhat attractive 5) most attractive
+    
+"""
+
+print("Working on bike share...")
+bike_kiosks_lyr =  arcpy.MakeFeatureLayer_management(bike_kiosks, 'bike_kiosks')
+
+# use spatial join to get trail head score on to microzones (maximum score in zone will be used)
+fieldmappings = arcpy.FieldMappings()
+fieldmappings.addTable(microzones)
+fieldmappings.addTable(bike_kiosks_lyr)
+modFieldMapping(fieldmappings, 'bike_share', 'max')
+
+maz_bs_join = os.path.join(temp_dir, "maz_bs_join.shp")
+arcpy.SpatialJoin_analysis(microzones, bike_kiosks_lyr, maz_bs_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
+
+# merge park score field back to full table
+maz_bs_join_df = pd.DataFrame.spatial.from_featureclass(maz_bs_join) # Might have to fill in zeroes
+maz_bs_join_df =  maz_bs_join_df[['zone_id', 'bike_share']]
+maz_remm_data = maz_remm_data.merge(maz_bs_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+#----------------------
+# Industrial Districts
+#----------------------
+
+"""
+  1) zone is within industrial districts 0 ) not within industrial districts
+"""
+
+print("Working on industrial districts...")
+industrial_districts_lyr =  arcpy.MakeFeatureLayer_management(industrial_districts, 'industrial_districts')
+
+# use spatial join to get school code on to microzones (maximum score in zone will be used)
+fieldmappings = arcpy.FieldMappings()
+fieldmappings.addTable(microzones)
+fieldmappings.addTable(industrial_districts_lyr)
+modFieldMapping(fieldmappings, 'industrial', 'max')
+
+maz_ind_join = os.path.join(temp_dir, "maz_ind_join.shp")
+arcpy.SpatialJoin_analysis(microzones, industrial_districts_lyr, maz_ind_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
+
+# merge park score field back to full table
+maz_ind_join_df = pd.DataFrame.spatial.from_featureclass(maz_ind_join) # Might have to fill in zeroes
+maz_ind_join_df =  maz_ind_join_df[['zone_id', 'industrial']]
+maz_remm_data = maz_remm_data.merge(maz_ind_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 #----------------------
 # Centroid Node 
@@ -746,41 +812,80 @@ arcpy.FeatureToPoint_management(microzones, maz_centroids)
 arcpy.Near_analysis(maz_centroids, nodes)
 
 # merge centroid field back to full table
-maz_centroid_join_df = gpd.read_file(maz_centroids) # Might have to fill in zeroes
+maz_centroid_join_df = pd.DataFrame.spatial.from_featureclass(maz_centroids) # Might have to fill in zeroes
 maz_centroid_join_df =  maz_centroid_join_df[['zone_id', 'NEAR_FID']]
 maz_centroid_join_df.columns = ['zone_id', 'NODE_ID']
 maz_remm_data = maz_remm_data.merge(maz_centroid_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
-#----------------------
-# Total Jobs
-#----------------------
+#-----------------------------------
+# Summarize Bike Path and Bike Lane
+#-----------------------------------
 
-print("Working on total jobs...")
+network_lyr = arcpy.MakeFeatureLayer_management(network, 'network_lyr')
 
-# create total jobs attribute
-maz_remm_data['jobs_total'] = maz_remm_data['jobs1']+ maz_remm_data['jobs3'] + maz_remm_data['jobs4'] +  maz_remm_data['jobs5'] + maz_remm_data['jobs6'] +  maz_remm_data['jobs7']
+# filter network for bike lanes and paths
+query1 = (""" Bike_Lane = 1 """)
+arcpy.SelectLayerByAttribute_management(network_lyr, 'NEW_SELECTION', query1)
+bike_lanes = arcpy.MakeFeatureLayer_management(network_lyr, 'bike_lanes_lyr')
 
+query2 = (""" Bike_Path = 1 """)
+arcpy.SelectLayerByAttribute_management(network_lyr, 'NEW_SELECTION', query2)
+bike_paths =  arcpy.MakeFeatureLayer_management(network_lyr, 'bike_paths_lyr')
 
-#----------------------
-# Mixed Use 
-#----------------------
+# create output gdb
+gdb = os.path.join(temp_dir, "bike_network_sums.gdb")
+if not arcpy.Exists(gdb):
+    arcpy.CreateFileGDB_management(os.path.dirname(gdb), os.path.basename(gdb))
 
-print("Working on mixed use...")
+# get length of bike paths within .25 miles of each buffered zone
+print("summarizing bike lane length...")
+bike_lane_sum = os.path.join(gdb, 'bike_lane_sum')
 
-# create mixed use attribute (fill NAs from dividing by 0, with 0)
-maz_remm_data['MIXED_USE'] = ((maz_remm_data['households'] * maz_remm_data['jobs_total']) / (maz_remm_data['households'] + maz_remm_data['jobs_total'])).replace(np.inf, 0)
-maz_remm_data['MIXED_USE'].fillna(0, inplace=True)
+arcpy.SummarizeNearby_analysis(in_features=microzones, in_sum_features=bike_lanes, out_feature_class=bike_lane_sum,
+                               distance_type ='STRAIGHT_LINE', distances=.25, distance_units='MILES',
+                               keep_all_polygons='KEEP_ALL', sum_fields=[['Length_Mil', 'Sum']], sum_shape='ADD_SHAPE_SUM',
+                               shape_unit='MILES')
 
+bike_lane_sum_df = pd.DataFrame.spatial.from_featureclass(bike_lane_sum)[['zone_id', 'SUM_Length_Mil']]
+bike_lane_sum_df.columns = ['zone_id', 'bklane_len']
+
+# get length of bike paths within .25 miles of each buffered zone
+print("summarizing bike path length...")
+bike_path_sum = os.path.join(gdb, 'bike_path_sum')
+
+arcpy.SummarizeNearby_analysis(in_features=microzones, in_sum_features=bike_paths, out_feature_class=bike_path_sum,
+                               distance_type ='STRAIGHT_LINE', distances=.25, distance_units='MILES',
+                               keep_all_polygons='KEEP_ALL', sum_fields=[['Length_Mil', 'Sum']], sum_shape='ADD_SHAPE_SUM',
+                               shape_unit='MILES')
+
+bike_path_sum_df = pd.DataFrame.spatial.from_featureclass(bike_path_sum)[['zone_id', 'SUM_Length_Mil']]
+bike_path_sum_df.columns = ['zone_id', 'bkpath_len']
+
+# merge the tables with the full data table
+bk_path_lane = bike_lane_sum_df.merge(bike_path_sum_df, left_on='zone_id', right_on='zone_id', how='inner')
+maz_remm_data = maz_remm_data.merge(bk_path_lane, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+del gdb
+del network_lyr
+del bike_lanes
+del bike_paths
+del bike_path_sum_df
+del bike_lane_sum_df
 
 #================================
 # WRAP-UP
 #================================ 
 
+# fill NAs where necessary
+for field in list(maz_remm_data.columns):
+    if field not in ['SHAPE']:
+        maz_remm_data[field].fillna(0, inplace=True)
+
 # final export
 final_zones = os.path.join(temp_dir, "microzones.shp")
-maz_remm_data.to_file(final_zones)
+maz_remm_data.spatial.to_featureclass(location=final_zones)
 
-# add area sq meters and sq miles
+# add area  square miles
 print("Working area square miles...")
 arcpy.AddField_management(final_zones, field_name="AREA_SQMIL", field_type='FLOAT')
 arcpy.CalculateGeometryAttributes_management(final_zones, [["area_sqmil", "AREA"]], area_unit='SQUARE_MILES_US')
@@ -829,6 +934,7 @@ arcpy.Delete_management(maz_school_join)
 arcpy.Delete_management(pts_aggd_buildings)
 arcpy.Delete_management(park_points)
 arcpy.Delete_management(maz_output)
+arcpy.Delete_management(gdb)
 arcpy.Delete_management(microzones)
 
 

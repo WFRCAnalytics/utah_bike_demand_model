@@ -1,6 +1,6 @@
 zone_file_name: microzones.csv
 zone_zone_column: zone_id
-zone_node_column: NODE_ID
+zone_node_column: node_id
 
 buffer_dist: 2.5
 buffer_cols:
@@ -9,10 +9,10 @@ buffer_cols:
     - jobs4  # healthcare jobs
     - jobs6  # office jobs
     - jobs5  # manufacturing jobs
-    - ENROL_ELEM  # elementary school enrollment
-    - ENROL_MIDL  # middle school enrollment
-    - ENROL_HIGH  # high school enrollment
-    - COLL_ENROL  # university enrollment
-    - PARK_SCORE
-    - TH_SCORE
-    - MIXED_USE
+    - enrol_elem  # elementary school enrollment
+    - enrol_midl  # middle school enrollment
+    - enrol_high  # high school enrollment
+    - coll_enrol  # university enrollment
+    - park_score
+    - th_score
+    - mixed_use
