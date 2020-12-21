@@ -51,6 +51,8 @@ if mode == 'auto':
     network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'AutoNetwork')
 if mode == 'ped':
     network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'PedNetwork')
+if mode == 'BikePedAuto':
+    network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'BikePedAuto')
 
 print("converting: {}...".format(network))
 
