@@ -1,4 +1,5 @@
 link_file: links.csv
+link_name: link_id
 from_name: from_node
 to_name: to_node
 
@@ -35,11 +36,10 @@ node_attributes:
 node_x_name: xcoord
 node_y_name: ycoord
 
-centroid_connector_name: centroid
+saved_graph: utah.graphml
 
-centroid_connector_test:
-    - ConnectorN
-    - Y
+# edge weights for path finding
+weights_bike: distance
 
 # generalized cost coefficients for bike skimming
 route_varcoef_bike:
