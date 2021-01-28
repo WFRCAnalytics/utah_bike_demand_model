@@ -29,8 +29,10 @@ is provided.
 
 
 import argparse
+import numpy as np
 
 from micromobility_toolset import model
+from micromobility_toolset.network import preprocessor
 
 
 def main():
@@ -57,6 +59,70 @@ def main():
         model.run('generate_demand', utah_base)
         model.run('assign_demand', utah_base)
 
+
+@preprocessor()
+def preprocess_network(net):
+    """add network attributes that are combinations of existing attributes"""
+    
+    distance = np.array(net.graph.es['distance'], dtype='float')
+    slope = np.array(net.graph.es['distance'], dtype='float')
+    bike_blvd = np.array(net.graph.es['bike_boulevard'], dtype='bool')
+    bike_path = np.array(net.graph.es['bike_path'], dtype='bool')
+    bike_lane = np.array(net.graph.es['bike_lane'], dtype='bool')
+    aadt = np.array(net.graph.es['AADT'], dtype='float')
+
+    light = (10e3 < aadt) & (aadt < 20e3)
+    med = (20e3 <= aadt) & (aadt < 30e3)
+    heavy = 30e3 <= aadt
+
+    small_slope = (2.0 < slope) & (slope < 4.0)
+    med_slope = (4.0 <= slope) & (slope < 6.0)
+    big_slope = 6.0 < slope
+
+    turn = np.array(net.graph.es['turn'], dtype='bool')
+    signal = np.array(net.graph.es['traffic_signal'], dtype='bool')
+    turn_type = np.array(net.graph.es['turn_type'])
+    parallel_aadt = np.array(net.graph.es['parallel_aadt'], dtype='float')
+    cross_aadt = np.array(net.graph.es['cross_aadt'], dtype='float')
+
+    left = turn_type == 'left'
+    left_or_straight = (turn_type == 'left') | (turn_type == 'straight')
+    right = turn_type == 'right'
+
+    light_cross= (5e3 < cross_aadt) & (cross_aadt < 10e3)
+    med_cross = (10e3 <= cross_aadt) & (cross_aadt < 20e3)
+    heavy_cross = 20e3 <= cross_aadt
+
+    med_parallel = (10e3 < parallel_aadt) & (parallel_aadt < 20e3)
+    heavy_parallel = 20e3 <= parallel_aadt
+
+    # distance coefficients
+    bike_cost = \
+        distance * (
+            1.0 + \
+            (bike_blvd * -0.108) + \
+            (bike_path * -0.16) + \
+            (small_slope * 0.371) + \
+            (med_slope * 1.23) + \
+            (big_slope * 3.239) + \
+            (bike_lane * med * 0.25) + \
+            (bike_lane * heavy * 1.65) + \
+            (~bike_lane * light * 0.368) + \
+            (~bike_lane * med * 1.4) + \
+            (~bike_lane * heavy * 7.157))
+
+    # fixed-cost penalties
+    bike_cost += \
+        (turn * 0.034) + \
+        (signal * 0.017) + \
+        (left_or_straight * light_cross * 0.048) + \
+        (left_or_straight * med_cross * 0.05) + \
+        (left_or_straight * heavy_cross * 0.26) + \
+        (right * heavy_cross * 0.031) + \
+        (left * med_parallel * 0.073) + \
+        (left * heavy_parallel * 0.18)
+
+    net.graph.es['bike_cost'] = np.nan_to_num(bike_cost)
 
 if __name__ == '__main__':
     main()

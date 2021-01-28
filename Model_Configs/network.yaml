@@ -36,37 +36,10 @@ node_attributes:
 node_x_name: xcoord
 node_y_name: ycoord
 
-saved_graph: utah.graphml
+saved_graph: utah.pickle
 
 # edge weights for path finding
-weights_bike: distance
-
-# generalized cost coefficients for bike skimming
-route_varcoef_bike:
-    # distance multipliers
-    distance: 1.0
-    bike_blvd_dist: -0.108
-    bike_path_dist: -0.16
-    prop_link_slope_2_4: 0.371
-    prop_link_slope_4_6: 1.23
-    prop_link_slope_6_plus: 3.239
-    bike_lane_light: 0
-    bike_lane_med: 0.25
-    bike_lane_heavy: 1.65
-    no_bike_lane_light: 0.368
-    no_bike_lane_med: 1.4
-    no_bike_lane_heavy: 7.157
-
-    # additional fixed-distance link-to-link attributes
-    turn: 0.034  # presence of a turn
-    stop_sign: 0.0037  # presence of a stop sighn
-    traffic_signal: 0.017  # presence of a traffic signal
-    cross_traffic_ls_light: 0.048  # left turn or straight across light traffic; 5-10k AADT
-    cross_traffic_ls_med: 0.05  # left turn or straight across medium traffic; 10-20k AADT
-    cross_traffic_ls_heavy: 0.26  # left turn or straight across heavy traffic; 20k+ AADT
-    cross_traffic_r: 0.031  # right turn into medium to heavy traffic; 10k+ AADT
-    parallel_traffic_l_med: 0.073  # left turn parallel to medium traffic; 10-20k AADT
-    parallel_traffic_l_heavy: 0.18  # left turn parallel to heavy traffic; 20k+ AADT
+weights_bike: bike_cost
 
 # maximum cost after which skimming is halted
 max_cost_bike: 10
