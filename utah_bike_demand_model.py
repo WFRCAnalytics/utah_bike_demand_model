@@ -45,7 +45,8 @@ def main():
     utah_base = model.Scenario(
         name='Utah Base Scenario',
         config='Model_Configs',
-        data='Model_Inputs')
+        inputs='Model_Inputs',
+        outputs='Model_Outputs')
 
     # only use first 100 microzones for testing. remove to run full dataset.
     # this method can also be used to compare two scenarios.
