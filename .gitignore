@@ -11,3 +11,9 @@ Model_Inputs/*.csv
 !Convert_Network/Outputs/nodes_example.csv
 !Convert_Network/Outputs/linkpoints_example.csv
 !Create_Microzones/Outputs/microzones_example.csv
+
+# ignore output files
+Model_Outputs/
+
+# ignore logfiles
+*.log

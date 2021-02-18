@@ -29,6 +29,7 @@ is provided.
 
 
 import argparse
+import numpy as np
 
 from micromobility_toolset import model
 from micromobility_toolset.network import preprocessor
@@ -44,7 +45,8 @@ def main():
     utah_base = model.Scenario(
         name='Utah Base Scenario',
         config='Model_Configs',
-        data='Model_Inputs')
+        inputs='Model_Inputs',
+        outputs='Model_Outputs')
 
     # only use first 100 microzones for testing. remove to run full dataset.
     # this method can also be used to compare two scenarios.
@@ -62,96 +64,66 @@ def main():
 @preprocessor()
 def preprocess_network(net):
     """add network attributes that are combinations of existing attributes"""
+    
+    distance = np.array(net.graph.es['distance'], dtype='float')
+    slope = np.array(net.graph.es['distance'], dtype='float')
+    bike_blvd = np.array(net.graph.es['bike_boulevard'], dtype='bool')
+    bike_path = np.array(net.graph.es['bike_path'], dtype='bool')
+    bike_lane = np.array(net.graph.es['bike_lane'], dtype='bool')
+    aadt = np.array(net.graph.es['AADT'], dtype='float')
 
-    # add new link attribute columns
-    link_attrs = [
-        'bike_blvd_dist', # OSM: cycleway="shared" OR LADOT: bikeway=("Route" OR "Shared Route",
-        'bike_path_dist', # OSM: highway="cycleway" OR (highway="path" & bicycle="dedicated", OR LADOT: bikeway="Path"
-        'prop_link_slope_2_4', # 2-4% upslope in forward direction, downslope in backward direction
-        'prop_link_slope_4_6', # 4-6% upslope in forward direction, downslope in backward direction
-        'prop_link_slope_6_plus', # 6+% upslope in forward direction, downslope in backward direction
-        'bike_lane_light', # 10-20k AADT; bike lane
-        'bike_lane_med', # 20-30k AADT; bike lane
-        'bike_lane_heavy', # 30k+ AADT; bike lane
-        'no_bike_lane_light', # 10-20k AADT; no bike lane
-        'no_bike_lane_med', # 20-30k AADT; no bike lane
-        'no_bike_lane_heavy', # 30k+ AADT; no bike lane
-    ]
+    light = (10e3 < aadt) & (aadt < 20e3)
+    med = (20e3 <= aadt) & (aadt < 30e3)
+    heavy = 30e3 <= aadt
 
-    for attr in link_attrs:
-        net.add_link_attribute(attr)
+    small_slope = (2.0 < slope) & (slope < 4.0)
+    med_slope = (4.0 <= slope) & (slope < 6.0)
+    big_slope = 6.0 < slope
 
-    # loop over links and calculate derived values
-    for a in net.adjacency:
-        for b in net.adjacency[a]:
-            distance = net.get_link_attribute_value((a,b),'distance')
-            slope = net.get_link_attribute_value((a,b), 'slope')
-            bike_blvd = net.get_link_attribute_value((a,b), 'bike_boulevard')
-            bike_path = net.get_link_attribute_value((a,b), 'bike_path')
-            bike_lane = net.get_link_attribute_value((a,b), 'bike_lane')
-            no_bike_lane = not bike_lane
+    turn = np.array(net.graph.es['turn'], dtype='bool')
+    signal = np.array(net.graph.es['traffic_signal'], dtype='bool')
+    turn_type = np.array(net.graph.es['turn_type'])
+    parallel_aadt = np.array(net.graph.es['parallel_aadt'], dtype='float')
+    cross_aadt = np.array(net.graph.es['cross_aadt'], dtype='float')
 
-            aadt = net.get_link_attribute_value((a,b), 'AADT')
-            light = 10e3 < aadt < 20e3
-            med = 20e3 <= aadt < 30e3
-            heavy = 30e3 <= aadt
+    left = turn_type == 'left'
+    left_or_straight = (turn_type == 'left') | (turn_type == 'straight')
+    right = turn_type == 'right'
 
-            net.set_link_attribute_value( (a,b), 'bike_blvd_dist', distance * bike_blvd )
-            net.set_link_attribute_value( (a,b), 'bike_path_dist', distance * bike_path )
-            net.set_link_attribute_value( (a,b), 'prop_link_slope_2_4', distance * ( 2.0 < slope < 4.0 ) )
-            net.set_link_attribute_value( (a,b), 'prop_link_slope_4_6', distance * ( 4.0 <= slope < 6.0 ) )
-            net.set_link_attribute_value( (a,b), 'prop_link_slope_6_plus', distance * ( 6.0 <= slope ) )
-            net.set_link_attribute_value( (a,b), 'bike_lane_light', distance * (bike_lane and light ) ) # New
-            net.set_link_attribute_value( (a,b), 'bike_lane_med', distance * (bike_lane and med ) ) # New
-            net.set_link_attribute_value( (a,b), 'bike_lane_heavy', distance * (bike_lane and heavy ) ) # New
-            net.set_link_attribute_value( (a,b), 'no_bike_lane_light', distance * ( no_bike_lane and light ) )
-            net.set_link_attribute_value( (a,b), 'no_bike_lane_med', distance * ( no_bike_lane and med ) )
-            net.set_link_attribute_value( (a,b), 'no_bike_lane_heavy', distance * ( no_bike_lane and heavy ) )
+    light_cross= (5e3 < cross_aadt) & (cross_aadt < 10e3)
+    med_cross = (10e3 <= cross_aadt) & (cross_aadt < 20e3)
+    heavy_cross = 20e3 <= cross_aadt
 
-    # add new dual (link-to-link) attribute columns
-    net.add_dual_attribute('turn') # presence of a turn
-    net.add_dual_attribute('stop_sign') # presence of a stop sighn
-    net.add_dual_attribute('cross_traffic_ls_light') # left turn or straight across light traffic; 5-10k AADT
-    net.add_dual_attribute('cross_traffic_ls_med') # left turn or straight across medium traffic; 10-20k AADT
-    net.add_dual_attribute('cross_traffic_ls_heavy') # left turn or straight across heavy traffic; 20k+ AADT
-    net.add_dual_attribute('cross_traffic_r') # right turn into medium to heavy traffic; 10k+ AADT
-    net.add_dual_attribute('parallel_traffic_l_med') # left turn parallel to medium traffic; 10-20k AADT
-    net.add_dual_attribute('parallel_traffic_l_heavy') # left turn parallel to heavy traffic; 20k+ AADT
+    med_parallel = (10e3 < parallel_aadt) & (parallel_aadt < 20e3)
+    heavy_parallel = 20e3 <= parallel_aadt
 
-    # loop over pairs of links and set attribute values
-    for link1 in net.dual:
-        for link2 in net.dual[link1]:
+    # distance coefficients
+    bike_cost = \
+        distance * (
+            1.0 + \
+            (bike_blvd * -0.108) + \
+            (bike_path * -0.16) + \
+            (small_slope * 0.371) + \
+            (med_slope * 1.23) + \
+            (big_slope * 3.239) + \
+            (bike_lane * med * 0.25) + \
+            (bike_lane * heavy * 1.65) + \
+            (~bike_lane * light * 0.368) + \
+            (~bike_lane * med * 1.4) + \
+            (~bike_lane * heavy * 7.157))
 
-            traversal_type = net.traversal_type(link1,link2)
-            l_turn = traversal_type in [5,7,10,13]
-            r_turn = traversal_type in [4,6,9,11]
-            straight = traversal_type in [8,12,14]
+    # fixed-cost penalties
+    bike_cost += \
+        (turn * 0.034) + \
+        (signal * 0.017) + \
+        (left_or_straight * light_cross * 0.048) + \
+        (left_or_straight * med_cross * 0.05) + \
+        (left_or_straight * heavy_cross * 0.26) + \
+        (right * heavy_cross * 0.031) + \
+        (left * med_parallel * 0.073) + \
+        (left * heavy_parallel * 0.18)
 
-            cross_aadt = net.get_link_attribute_value(link2, 'AADT')
-            parallel_aadt = net.get_link_attribute_value(link1, 'AADT')
-
-            cross_light = 5e3 < cross_aadt < 10e3
-            cross_med = 10e3 <= cross_aadt < 20e3
-            cross_heavy = 20e3 <= cross_aadt
-            parallel_med = 10e3 <= parallel_aadt < 20e3
-            parallel_heavy = 20e3 <= parallel_aadt
-            
-            # TODO: confirm these traversal types
-            cross = traversal_type in [6,7,13]
-            parallel = traversal_type in [9,10]
-
-            net.set_dual_attribute_value(link1,link2,'turn', 1 * (traversal_type in [3,4,5,6,7,9,10,11,13]) )
-
-            # TODO: add stop sign column to input data
-            net.set_dual_attribute_value(link1,link2,'stop_sign',0)
-
-            net.set_dual_attribute_value(link1,link2,'cross_traffic_ls_light', 1 * (cross_light and (l_turn or straight)) )
-            net.set_dual_attribute_value(link1,link2,'cross_traffic_ls_med', 1 * (cross_med and (l_turn or straight)) )
-            net.set_dual_attribute_value(link1,link2,'cross_traffic_ls_heavy', 1 * (cross_heavy and (l_turn or straight)) )
-            net.set_dual_attribute_value(link1,link2,'cross_traffic_r', 1 * (r_turn and (cross_med or cross_heavy)) )
-            net.set_dual_attribute_value(link1,link2,'parallel_traffic_l_med', 1 * (parallel_med and l_turn) )
-            net.set_dual_attribute_value(link1,link2,'parallel_traffic_l_heavy', 1 * (parallel_heavy and l_turn) )
-
+    net.graph.es['bike_cost'] = np.nan_to_num(bike_cost)
 
 if __name__ == '__main__':
     main()
