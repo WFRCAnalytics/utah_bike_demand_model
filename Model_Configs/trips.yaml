@@ -12,14 +12,7 @@ segments:
 trip_azone_col: azone
 trip_pzone_col: pzone
 
-# modes in order of columns in trip tables
-modes:
-    - bk
-
-bike_modes:
-    - bk
-
-# output file names; and inputs if no input_sqlite_db
+# output file names
 trip_files:
     rec_long: rec_long_trip.csv
     rec_fam: rec_fam_trip.csv
@@ -40,7 +33,28 @@ trip_files:
 
 # Trip Generation
 
-hh_col: households  # to multiply average household-day trips and get total trips
+# maximum trip distance between zones
+# cannot be greater than skim_max_dist from network.yaml
+trip_max_dist:
+    rec_long: 7.5
+    rec_fam: 5.0
+    rec_oth: 5.0
+    work: 5.0
+    sch_grade: 5.0
+    sch_univ: 5.0
+    maint: 5.0
+    disc: 5.0
+
+# link attribute to calculate shortest path weight
+trip_cost_attr:
+    rec_long: bike_cost
+    rec_fam: bike_cost
+    rec_oth: bike_cost
+    work: bike_cost
+    sch_grade: bike_cost
+    sch_univ: bike_cost
+    maint: bike_cost
+    disc: bike_cost
 
 # number of household-day trips intercept, by segment
 trip_gen_consts:

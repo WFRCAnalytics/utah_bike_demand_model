@@ -1,6 +1,7 @@
 zone_file_name: microzones.csv
 zone_zone_column: zone_id
 zone_node_column: node_id
+zone_hh_col: households  # to multiply average household-day trips and get total trips
 
 buffer_dist: 2.5
 buffer_cols:
