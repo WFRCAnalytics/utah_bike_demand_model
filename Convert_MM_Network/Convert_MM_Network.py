@@ -71,6 +71,10 @@ perform_clean_up = True
 # Prep data
 #=====================================
 
+# create outputs folder
+if not os.path.exists(temp_dir):
+    os.makedirs(temp_dir)
+
 study_area = os.path.join(os.getcwd(), 'Inputs', 'TAZ_WFRC_UTM12.shp')
 
 # select road segments that overlap with study area

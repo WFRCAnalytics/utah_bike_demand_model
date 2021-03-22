@@ -35,6 +35,8 @@ taz_se_data3 = r".\Inputs\Marginal_Income_2019_v831.csv"
 # From Other sources
 roads = r".\Inputs\Roads.shp"
 trail_heads = r".\Inputs\Trailheads.shp"
+long_dist_rec = r".\Inputs\Long_Dist_Rec_Pts.shp"
+mtn_bike_hike = r".\Inputs\Mtn_Bike_Hiking_Trailheads.shp"
 schools = r".\Inputs\Schools.shp"
 light_rail_stops = r".\Inputs\LightRailStations_UTA.shp"
 parks = r".\Inputs\ParksLocal.shp"
@@ -99,31 +101,10 @@ def addLeadingZeroesTAZ(integer):
 # Create Preliminary Zones
 #========================== 
 
-"""
-Dissolve WFRC/MAG model area TAZ polygons into single model area polygon
 
-Feature to line with model area outline polygon to create model area polyline (outline)
-
-Select all roads in Utah, SL, Davis, Weber, and Box Elder counties that are not 'negative direction" of divided highways and not ramps or part of ramp systems
-(not (DOT_RTNAME like '%N' or char_length(DOT_RTNAME >5)) and (County_L = '49003' or County_L = '49011' or County_L = '49035' or County_L = '49049' or County_L = '49057')
-
-Append selected roads into feature class with model area polyline created in step #2
-
-Features to polygons with appended set of roads + outline to create 'preliminary blocks'
-
-Add a part count and Use Calculate Geometry to set values = to # of parts
-
-Eliminate contained parts from 'preliminary blocks'
-
-Create a 'filled blocks' section layer where part count (set earlier) was set to a number > 1
-
-Select by location the 'preliminary blocks' (target) that intersect with 'filled blocks' (might have to use have centroid within)
-
-Delete the selected preliminary blocks and then append the filled blocks layer 
-
-add TAZ ID to microzone using centroid probably
-"""
-
+# create outputs folder
+if not os.path.exists(temp_dir):
+    os.makedirs(temp_dir)
 
 print("Creating preliminary zones...")
 
@@ -202,7 +183,8 @@ arcpy.SelectLayerByAttribute_management(filled_zones, "NEW_SELECTION", query)
 microzones_rings_erased = arcpy.Erase_analysis(zones_eliminated2, filled_zones, os.path.join(temp_dir, 'zones_erased.shp'))
 
 # add missing zones back
-arcpy.Merge_management([microzones_rings_erased, filled_zones], os.path.join(temp_dir, 'merged_zones.shp'))
+merged_zones(os.path.join(temp_dir, 'merged_zones.shp'))
+arcpy.Merge_management([microzones_rings_erased, filled_zones], merged_zones)
 
 
 # Clip microzones using determined (good) tazs
@@ -211,7 +193,7 @@ taz_layer = arcpy.MakeFeatureLayer_management(taz_polygons, 'tazs')
 query = """not "tazid" in(688, 689,1339, 1340, 2870, 2871, 2872, 1789, 1913, 1914, 1915, 1916, 2854)"""
 arcpy.SelectLayerByAttribute_management(taz_layer, "NEW_SELECTION", query)
 microzones_geom =  os.path.join(temp_dir, "maz_clipped.shp")
-maz_clipped = arcpy.Clip_analysis(os.path.join(temp_dir, 'merged_zones.shp'), taz_layer, microzones_geom)
+maz_clipped = arcpy.Clip_analysis(merged_zones, taz_layer, microzones_geom)
 
 
 #==========================
@@ -398,7 +380,7 @@ taz_join3 = taz_join2.merge(taz_se_data3, left_on = 'CO_TAZID', right_on = 'CO_T
 
 
 # filter to desired columns
-taz_join_filt = taz_join3[['CO_TAZID', 'TAZID_x' , 'SHAPE', 'AVGINCOME','ENROL_ELEM', 'ENROL_MIDL','ENROL_HIGH', 'POP_LC1', 'POP_LC2', 'POP_LC3', 'HHSIZE_LC1', 'HHSIZE_LC2', 'HHSIZE_LC3', 'PCT_POPLC1', 'PCT_POPLC2', 'PCT_POPLC3', 'PCT_AG1', 'PCT_AG2', 'PCT_AG3', 'INC1', 'INC2', 'INC3', 'INC4']]
+taz_join_filt = taz_join3[['CO_TAZID', 'TAZID_x' , 'SHAPE', 'AVGINCOME','ENROL_ELEM', 'ENROL_MIDL','ENROL_HIGH', 'POP_LC1', 'POP_LC2', 'POP_LC3', 'HHSIZE_LC1', 'HHSIZE_LC2', 'HHSIZE_LC3', 'PCT_POPLC1', 'PCT_POPLC2', 'PCT_POPLC3', 'PCT_AG1', 'PCT_AG2', 'PCT_AG3', 'INC1', 'INC2', 'INC3', 'INC4']].copy()
 
 # export taz data to shape
 out_taz_data = os.path.join(temp_dir, "taz_with_se_data.shp")
@@ -502,7 +484,7 @@ arcpy.SpatialJoin_analysis(microzones, parks_lyr, maz_park_join, "JOIN_ONE_TO_ON
 
 # merge park score field back to full table
 maz_park_join_df = pd.DataFrame.spatial.from_featureclass(maz_park_join)
-maz_park_join_df =  maz_park_join_df[['zone_id', "PARK_SCORE"]]
+maz_park_join_df =  maz_park_join_df[['zone_id', "PARK_SCORE"]].copy()
 maz_remm_data = maz_remm_data.merge(maz_park_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 
@@ -537,7 +519,7 @@ arcpy.SpatialJoin_analysis(microzones, park_points, maz_park_join2, "JOIN_ONE_TO
 
 # merge park area field back to full table
 maz_park_join2_df = pd.DataFrame.spatial.from_featureclass(maz_park_join2)
-maz_park_join2_df =  maz_park_join2_df[['zone_id', "PARK_AREA"]]
+maz_park_join2_df =  maz_park_join2_df[['zone_id', "PARK_AREA"]].copy()
 maz_remm_data = maz_remm_data.merge(maz_park_join2_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 
@@ -588,7 +570,7 @@ arcpy.SpatialJoin_analysis(microzones, schools, maz_school_join, "JOIN_ONE_TO_ON
 
 # merge school score field back to full table
 maz_school_join_df = pd.DataFrame.spatial.from_featureclass(maz_school_join)
-maz_school_join_df =  maz_school_join_df[['zone_id', "SCHOOL_CD"]]
+maz_school_join_df =  maz_school_join_df[['zone_id', "SCHOOL_CD"]].copy()
 maz_remm_data = maz_remm_data.merge(maz_school_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 #-------------------
@@ -613,9 +595,61 @@ arcpy.SpatialJoin_analysis(microzones, enrollment_lyr, maz_ce_join, "JOIN_ONE_TO
 
 # merge college enrollment field back to full table
 maz_ce_join_df = pd.DataFrame.spatial.from_featureclass(maz_ce_join) # Might have to fill in zeroes
-maz_ce_join_df =  maz_ce_join_df[['zone_id', 'Enrollment']]
-maz_ce_join_df.columns = ['zone_id', 'COLL_ENROL']
+maz_ce_join_df =  maz_ce_join_df[['zone_id', 'Enrollment']].copy()
+maz_ce_join_df.columns = ['zone_id', 'coll_enrol']
 maz_remm_data = maz_remm_data.merge(maz_ce_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+#-------------------
+# mountain bike and hiking trailheads
+#-------------------
+"""
+  3) most attractive 2) moderately attractive 1) least attractive
+    
+"""
+
+print("Working on mtn bike and hiking trail heads...")
+mtn_bike_hike_lyr =  arcpy.MakeFeatureLayer_management(mtn_bike_hike, 'mtn_bike_hike')
+
+# use spatial join to get trail head score on to microzones (maximum score in zone will be used)
+fieldmappings = arcpy.FieldMappings()
+fieldmappings.addTable(microzones)
+fieldmappings.addTable(mtn_bike_hike_lyr)
+modFieldMapping(fieldmappings, 'mtbh_score', 'max')
+
+maz_mtbh_join = os.path.join(temp_dir, "maz_mtbh_join.shp")
+arcpy.SpatialJoin_analysis(microzones, mtn_bike_hike_lyr, maz_mtbh_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
+
+# merge park score field back to full table
+maz_mtbh_join_df = pd.DataFrame.spatial.from_featureclass(maz_mtbh_join) # Might have to fill in zeroes
+maz_mtbh_join_df =  maz_mtbh_join_df[['zone_id', 'mtbh_score']].copy()
+maz_remm_data = maz_remm_data.merge(maz_mtbh_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+#-------------------
+# long distance rec
+#-------------------
+"""
+  3) most attractive 2) moderately attractive 1) least attractive
+    
+"""
+
+print("Working on long distance rec trail heads...")
+long_dist_rec_lyr =  arcpy.MakeFeatureLayer_management(long_dist_rec, 'long_dist_rec')
+
+# use spatial join to get trail head score on to microzones (maximum score in zone will be used)
+fieldmappings = arcpy.FieldMappings()
+fieldmappings.addTable(microzones)
+fieldmappings.addTable(long_dist_rec_lyr)
+modFieldMapping(fieldmappings, 'ldr_score', 'max')
+
+maz_ldr_join = os.path.join(temp_dir, "maz_ldr_join.shp")
+arcpy.SpatialJoin_analysis(microzones, long_dist_rec_lyr, maz_ldr_join, "JOIN_ONE_TO_ONE", "KEEP_ALL", fieldmappings, "INTERSECT")
+
+# merge park score field back to full table
+maz_ldr_join_df = pd.DataFrame.spatial.from_featureclass(maz_ldr_join) # Might have to fill in zeroes
+maz_ldr_join_df =  maz_ldr_join_df[['zone_id', 'ldr_score']].copy()
+maz_remm_data = maz_remm_data.merge(maz_ldr_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+
 
 #-------------------
 # trailheads 
@@ -639,8 +673,10 @@ arcpy.SpatialJoin_analysis(microzones, trail_heads_lyr, maz_th_join, "JOIN_ONE_T
 
 # merge park score field back to full table
 maz_th_join_df = pd.DataFrame.spatial.from_featureclass(maz_th_join) # Might have to fill in zeroes
-maz_th_join_df =  maz_th_join_df[['zone_id', 'TH_SCORE']]
+maz_th_join_df =  maz_th_join_df[['zone_id', 'TH_SCORE']].copy()
 maz_remm_data = maz_remm_data.merge(maz_th_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
+
+
 
 #----------------------
 # Commuter Rail Stops
@@ -671,7 +707,7 @@ arcpy.SpatialJoin_analysis(microzones, cr_lyr, maz_cr_join, "JOIN_ONE_TO_ONE", "
 
 # merge park score field back to full table
 maz_cr_join_df = pd.DataFrame.spatial.from_featureclass(maz_cr_join) # Might have to fill in zeroes
-maz_cr_join_df =  maz_cr_join_df[['zone_id', 'COMM_RAIL']]
+maz_cr_join_df =  maz_cr_join_df[['zone_id', 'COMM_RAIL']].copy()
 maz_remm_data = maz_remm_data.merge(maz_cr_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 
@@ -705,7 +741,7 @@ arcpy.SpatialJoin_analysis(microzones, lr_lyr, maz_lr_join, "JOIN_ONE_TO_ONE", "
 
 # merge park score field back to full table
 maz_lr_join_df = pd.DataFrame.spatial.from_featureclass(maz_lr_join) # Might have to fill in zeroes
-maz_lr_join_df =  maz_lr_join_df[['zone_id', 'LIGHT_RAIL']]
+maz_lr_join_df =  maz_lr_join_df[['zone_id', 'LIGHT_RAIL']].copy()
 maz_remm_data = maz_remm_data.merge(maz_lr_join_df, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
 
 
@@ -731,7 +767,7 @@ arcpy.TableToTable_conversion(out_table, os.path.dirname(out_table_csv), os.path
 
 # merge table back with Microzones        
 zonal_table = pd.read_csv(out_table_csv)
-zonal_table =  zonal_table[['zone_id', 'MEAN']]
+zonal_table =  zonal_table[['zone_id', 'MEAN']].copy()
 zonal_table.columns = ['zone_id', field]
 zonal_table['zone_id'] = zonal_table['zone_id'].astype(str)
 maz_remm_data = maz_remm_data.merge(zonal_table, left_on = 'zone_id', right_on = 'zone_id' , how = 'inner')
@@ -878,7 +914,7 @@ del bike_lane_sum_df
 
 # fill NAs where necessary
 for field in list(maz_remm_data.columns):
-    if field not in ['SHAPE']:
+    if field not in ['Shape']:
         maz_remm_data[field].fillna(0, inplace=True)
 
 # final export
@@ -887,11 +923,18 @@ maz_remm_data.spatial.to_featureclass(location=final_zones)
 
 # add area  square miles
 print("Working area square miles...")
-arcpy.AddField_management(final_zones, field_name="AREA_SQMIL", field_type='FLOAT')
+arcpy.AddField_management(final_zones, field_name="area_sqmil", field_type='FLOAT')
 arcpy.CalculateGeometryAttributes_management(final_zones, [["area_sqmil", "AREA"]], area_unit='SQUARE_MILES_US')
 
 # create csv version
-arcpy.TableToTable_conversion(final_zones, temp_dir, 'microzones.csv')
+final_zones = pd.DataFrame.spatial.from_featureclass(final_zones)
+del final_zones['SHAPE']
+del final_zones['Id']
+del final_zones['FID']
+names_lowercase = [att.lower() for att in list(final_zones.columns)]
+final_zones.columns = names_lowercase
+final_zones.to_csv(os.path.join(temp_dir, 'microzones.csv'), index=False)
+#arcpy.TableToTable_conversion(final_zones, temp_dir, 'microzones.csv')
 
 print('Zones complete!!')
 
@@ -919,11 +962,17 @@ arcpy.Delete_management(out_p2r)
 arcpy.Delete_management(maz_ce_join)
 arcpy.Delete_management(maz_centroids)
 arcpy.Delete_management(maz_erased)
+arcpy.Delete_management(maz_clipped)
 arcpy.Delete_management(maz_and_canyons)
 arcpy.Delete_management(target_features)
 arcpy.Delete_management(maz_cr_join)
+arcpy.Delete_management(maz_bs_join)
+arcpy.Delete_management(maz_ind_join)
 arcpy.Delete_management(maz_lr_join)
 arcpy.Delete_management(maz_th_join)
+arcpy.Delete_management(maz_mtbh_join)
+arcpy.Delete_management(maz_ldr_join)
+arcpy.Delete_management(merged_zones)
 arcpy.Delete_management(out_taz_data)
 arcpy.Delete_management(output_features)
 arcpy.Delete_management(maz_park_identity)
@@ -934,7 +983,6 @@ arcpy.Delete_management(maz_school_join)
 arcpy.Delete_management(pts_aggd_buildings)
 arcpy.Delete_management(park_points)
 arcpy.Delete_management(maz_output)
-arcpy.Delete_management(gdb)
 arcpy.Delete_management(microzones)
 
 
@@ -943,6 +991,7 @@ del cursor
 del enrollment_lyr
 del fieldmappings
 del filled_zones
+del long_dist_rec_lyr
 del lr_lyr
 del maz_and_canyons
 del maz_clipped
@@ -956,6 +1005,7 @@ del microzones
 del microzones_geom
 del microzones_no_rings
 del microzones_rings_erased
+del mtn_bike_hike_lyr
 del parks_lyr
 del prelim_zones
 del roads_clipped
@@ -971,7 +1021,7 @@ del taz_join_filt
 del taz_layer
 del taz_outline
 del taz_se_data3
-del trail_heads_lyr
+#del trail_heads_lyr
 del zonal_table
 del zones_eliminated
 del zones_eliminated2
