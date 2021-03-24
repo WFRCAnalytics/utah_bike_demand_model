@@ -4,40 +4,40 @@
 Description:unique identifer    
 
 *from_node:* 
-Description:from node ID  
+Description: from node ID  
 
 *from_x:*  
-Description:From x-coordinate  
+Description: From x-coordinate  
 
 *from_y:*  
-Description:From y-coordinate  
+Description: From y-coordinate  
 
 *to_node:*  
-Description:to node ID  
+Description: to node ID  
 
 *to_x:*  
-Description:To x-coordinate  
+Description: To x-coordinate  
 
 *to_y:*  
-Description:To y-coordinate  
+Description: To y-coordinate  
 
 *Name:*  
-Description:Street name  
+Description: Street name  
 
 *Oneway:*  
-Description:Indicates if road is one-way  
+Description: Indicates if road is one-way  
 
 *Speed:*  
-Description:Speed limit in MPH  
+Description: Speed limit in MPH  
 
 *AutoNetwork:*  
-Description:Indicates if link  is part of Auto Network  
+Description: Indicates if link  is part of Auto Network  
 
 *BikeNetwork:*  
-Description:Indicates if link  is part of Bike Network   
+Description: Indicates if link  is part of Bike Network   
 
 *PedNetwork:*  
-Description:Indicates if link  is part of Pedestrian Network  
+Description: Indicates if link  is part of Pedestrian Network  
 
 *DriveTime:*    
 Description:  
