@@ -1,6 +1,6 @@
 ## Link Attributes  
 
-*link_id:* 
+*link_id:*  
 Description:unique identifer    
 
 *from_node:* 
