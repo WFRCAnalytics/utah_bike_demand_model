@@ -228,6 +228,14 @@ Source: AGRC
 Description: 2019 enrollment estimates from  
 Source: various sources e.g. utah department of education  
 
+**ldr_score**  
+Description: Scores determining attractiveness of long distance rec trailheads 3) very attractive 2) moderately attractive 1) slightly attractive 0) no trail head
+Source: AGRC  
+
+**mtbh_score**  
+Description: Scores determining attractiveness of mountain bike and hiking trailheads 3) very attractive 2) moderately attractive 1) slightly attractive 0) no trail head
+Source: AGRC  
+
 **TH_SCORE**  
 Description: Scores determining attractiveness of trailheads 3) very attractive 2) moderately attractive 1) slightly attractive 0) no trail head
 Source: AGRC 
