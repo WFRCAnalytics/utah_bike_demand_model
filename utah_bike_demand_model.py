@@ -56,12 +56,12 @@ def main():
 @preprocessor()
 def preprocess_network(net):
     """
-    Add 'bike_cost' network attribute as a combination of existing attributes,
-    including turns.
+    Add 'bike_commute' and 'bike_non_commute' network edge costs as a combination of
+    existing attributes, including turns.
     """
 
     distance = net.get_edge_values("distance", dtype="float")
-    slope = net.get_edge_values("distance", dtype="float")
+    slope = net.get_edge_values("slope", dtype="float")
     bike_blvd = net.get_edge_values("bike_boulevard", dtype="bool")
     bike_path = net.get_edge_values("bike_path", dtype="bool")
     bike_lane = net.get_edge_values("bike_lane", dtype="bool")
@@ -93,7 +93,7 @@ def preprocess_network(net):
     heavy_parallel = 20e3 <= parallel_aadt
 
     # distance coefficients
-    bike_cost = distance * (
+    bike_commute = distance * (
         1.0
         + (bike_blvd * -0.108)
         + (bike_path * -0.16)
@@ -107,8 +107,22 @@ def preprocess_network(net):
         + (~bike_lane * heavy * 7.157)
     )
 
+    bike_non_commute = distance * (
+        1.0
+        + (bike_blvd * -0.179)
+        + (bike_path * -0.26)
+        + (small_slope * 0.723)
+        + (med_slope * 2.904)
+        + (big_slope * 11.066)
+        + (bike_lane * med * 0.5)
+        + (bike_lane * heavy * 3.3)
+        + (~bike_lane * light * 0.7)
+        + (~bike_lane * med * 2.0)
+        + (~bike_lane * heavy * 10.0)
+    )
+
     # fixed-cost penalties
-    bike_cost += (
+    bike_commute += (
         (turn * 0.034)
         + (signal * 0.017)
         + (left_or_straight * light_cross * 0.048)
@@ -119,7 +133,19 @@ def preprocess_network(net):
         + (left * heavy_parallel * 0.18)
     )
 
-    net.set_edge_values("bike_cost", bike_cost)
+    bike_non_commute += (
+        (turn * 0.074)
+        + (signal * 0.033)
+        + (left_or_straight * light_cross * 0.072)
+        + (left_or_straight * med_cross * 0.1)
+        + (left_or_straight * heavy_cross * 0.55)
+        + (right * heavy_cross * 0.06)
+        + (left * med_parallel * 0.15)
+        + (left * heavy_parallel * 0.4)
+    )
+
+    net.set_edge_values("bike_commute", bike_commute)
+    net.set_edge_values("bike_non_commute", bike_non_commute)
 
 
 if __name__ == "__main__":

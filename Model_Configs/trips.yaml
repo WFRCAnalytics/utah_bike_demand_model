@@ -1,5 +1,6 @@
 segments:
     - rec_long  # recreation -- long distance
+    - rec_mtb  # recreation -- mountain bike
     - rec_fam  # recreation -- family
     - rec_oth  # recreation -- other
     - work  # work
@@ -7,6 +8,14 @@ segments:
     - sch_univ  # university
     - maint  # maintenance
     - disc  # discretionary/otyer
+    - rec_long_nhb  # recreation -- long distance non-home-based
+    - rec_fam_nhb  # recreation -- family non-home-based
+    - rec_oth_nhb  # recreation -- other non-home-based
+    - work_nhb  # work non-home-based
+    - sch_grade_nhb  # grade school non-home-based
+    - sch_univ_nhb  # university non-home-based
+    - maint_nhb  # maintenance non-home-based
+    - disc_nhb  # discretionary/other non-home-based
 
 # from and to columns for trip tables
 trip_azone_col: azone
@@ -15,6 +24,7 @@ trip_pzone_col: pzone
 # output file names
 trip_files:
     rec_long: rec_long_trip.csv
+    rec_mtb: rec_mtb_trip.csv
     rec_fam: rec_fam_trip.csv
     rec_oth: rec_oth_trip.csv
     work: work_trip.csv
@@ -22,39 +32,101 @@ trip_files:
     sch_univ: sch_univ_trip.csv
     maint: maint_trip.csv
     disc: disc_trip.csv
-    rec_long_nhb: rec_long_trip_nhb.csv
-    rec_fam_nhb: rec_fam_trip_nhb.csv
-    rec_oth_nhb: rec_oth_trip_nhb.csv
-    work_nhb: work_trip_nhb.csv
-    sch_grade_nhb: sch_grade_trip_nhb.csv
-    sch_univ_nhb: sch_univ_trip_nhb.csv
-    maint_nhb: maint_trip_nhb.csv
-    disc_nhb: disc_trip_nhb.csv
+    rec_long_nhb: rec_long_nhb_trip.csv
+    rec_fam_nhb: rec_fam_nhb_trip.csv
+    rec_oth_nhb: rec_oth_nhb_trip.csv
+    work_nhb: work_nhb_trip.csv
+    sch_grade_nhb: sch_grade_nhb_trip.csv
+    sch_univ_nhb: sch_univ_nhb_trip.csv
+    maint_nhb: maint_nhb_trip.csv
+    disc_nhb: disc_nhb_trip.csv
 
 # Trip Generation
 
 # maximum trip distance between zones
-# cannot be greater than skim_max_dist from network.yaml
+# NOTE: no max dist for rec_long
 trip_max_dist:
-    rec_long: 7.5
     rec_fam: 5.0
+    rec_mtb: 7.5
     rec_oth: 5.0
-    work: 5.0
+    work: 7.5
     sch_grade: 5.0
     sch_univ: 5.0
     maint: 5.0
     disc: 5.0
+    rec_fam_nhb: 5.0
+    rec_oth_nhb: 5.0
+    work_nhb: 7.5
+    sch_grade_nhb: 5.0
+    sch_univ_nhb: 5.0
+    maint_nhb: 5.0
+    disc_nhb: 5.0
+
+# minimum trip distance
+# defaults to 0
+trip_min_dist:
+    rec_long: 5.0
+    rec_long_nhb: 5.0
 
 # link attribute to calculate shortest path weight
 trip_cost_attr:
-    rec_long: bike_cost
-    rec_fam: bike_cost
-    rec_oth: bike_cost
-    work: bike_cost
-    sch_grade: bike_cost
-    sch_univ: bike_cost
-    maint: bike_cost
-    disc: bike_cost
+    rec_long: bike_commute
+    rec_mtb: bike_commute
+    rec_fam: bike_non_commute
+    rec_oth: bike_non_commute
+    work: bike_commute
+    sch_grade: bike_non_commute
+    sch_univ: bike_non_commute
+    maint: bike_non_commute
+    disc: bike_non_commute
+    rec_long_nhb: bike_commute
+    rec_fam_nhb: bike_non_commute
+    rec_oth_nhb: bike_non_commute
+    work_nhb: bike_commute
+    sch_grade_nhb: bike_non_commute
+    sch_univ_nhb: bike_non_commute
+    maint_nhb: bike_non_commute
+    disc_nhb: bike_non_commute
+
+# coefficient for trip generation as a factor of other segments
+# axis: 1 means use origin totals; axis: 0 means use destinations
+trip_gen_sum_factor:
+    rec_mtb:
+        segment: rec_long
+        axis: 1  # use rec_long origin sums for mtb trip gen
+        coef: 0.25
+    rec_long_nhb:
+        segment: rec_long
+        axis: 0
+        coef: 0.5
+    rec_fam_nhb:
+        segment: rec_fam
+        axis: 0
+        coef: 0.548
+    rec_oth_nhb:
+        segment: rec_oth
+        axis: 0
+        coef: 0.588
+    work_nhb:
+        segment: work
+        axis: 0
+        coef: 0.763
+    sch_grade_nhb:
+        segment: sch_grade
+        axis: 0
+        coef: 0.169
+    sch_univ_nhb:
+        segment: sch_univ
+        axis: 0
+        coef: 0.75
+    maint_nhb:
+        segment: maint
+        axis: 0
+        coef: 0.418
+    disc_nhb:
+        segment: disc
+        axis: 0
+        coef: 0.319
 
 # number of household-day trips intercept, by segment
 trip_gen_consts:
@@ -107,7 +179,6 @@ trip_gen_zone_coefs:
 trip_gen_buffer_coefs:
     rec_long:
         households: 8.58e-07
-        th_score: .003
     rec_fam:
         enrol_elem: 1.49e-06
         enrol_midl: 1.49e-06
@@ -133,12 +204,23 @@ trip_gen_buffer_coefs:
     disc:
         mixed_use: 3.13e-06
 
-dest_choice_coefs:
+# reuse another segment's calculations for destination size
+reuse_dest_size:
+    rec_long_nhb: rec_long
+    rec_fam_nhb: rec_fam
+    rec_oth_nhb: rec_oth
+    work_nhb: work
+    sch_grade_nhb: sch_grade
+    sch_univ_nhb: sch_univ
+    maint_nhb: maint
+    disc_nhb: disc
+
+# calculate destination size from zone columns using given weights
+dest_choice_zone_coefs:
     rec_long:
-        #jobs9: 1.0
-        #area_sqmil: 69.6
-        th_score: 300
-        park_area: 11.6
+        ldr_score: 1.0
+    rec_mtb:
+        mtbh_score: 1.0
     rec_fam:
         households: 0.79
         enrol_elem: 1.0
@@ -175,20 +257,10 @@ dest_choice_coefs:
         jobs7: 0.55
         households: 0.2
 
-# coefficient for non-home-based trips as a percentage of home-based trips
-nhb_factor:
-    rec_long: 0.5
-    rec_fam: 0.548
-    rec_oth: 0.588
-    work: 0.763
-    sch_grade: 0.169
-    sch_univ: 0.75
-    maint: 0.418
-    disc: 0.319
-
 # additive gen dist term by segment
 bike_asc:
     rec_long: -0.302
+    rec_mtb: -0.302
     rec_fam: -2.0
     rec_oth: -0.791
     work: -0.78
@@ -196,10 +268,19 @@ bike_asc:
     sch_univ: -1.1
     maint: -2.02
     disc: -1.53
+    rec_long_nhb: -0.302
+    rec_fam_nhb: -2.0
+    rec_oth_nhb: -0.791
+    work_nhb: -0.78
+    sch_grade_nhb: -1.46
+    sch_univ_nhb: -1.1
+    maint_nhb: -2.02
+    disc_nhb: -1.53
 
 # additive intrazonal gen dist
 bike_intrazonal:
-    rec_long: 1.0
+    rec_long: 0.0
+    rec_mtb: 0.0
     rec_fam: 2.19
     rec_oth: 3.0
     work: -0.16
@@ -207,3 +288,11 @@ bike_intrazonal:
     sch_univ: -1.58
     maint: 0.479
     disc: 0.385
+    rec_long_nhb: 0.0
+    rec_fam_nhb: 2.19
+    rec_oth_nhb: 3.0
+    work_nhb: -0.16
+    sch_grade_nhb: 3.08
+    sch_univ_nhb: -1.58
+    maint_nhb: 0.479
+    disc_nhb: 0.385
