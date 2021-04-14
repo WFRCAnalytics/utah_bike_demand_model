@@ -131,13 +131,13 @@ trip_gen_sum_factor:
 # number of household-day trips intercept, by segment
 trip_gen_consts:
     rec_long: 0.012
-    rec_fam: 0.004
-    rec_oth: 0.035
-    work: 0.1
-    sch_grade: 0.016
-    sch_univ: 0.069
-    maint: 0.058
-    disc: 0.055
+    rec_fam: -0.007
+    rec_oth: 0.016
+    work: 0.123
+    sch_grade: -0.01
+    sch_univ: -0.041
+    maint: -0.029
+    disc: 0.001
 
 # trip-gen coefficients for zone attributes
 trip_gen_zone_coefs:
