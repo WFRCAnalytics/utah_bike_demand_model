@@ -17,7 +17,10 @@ import arcpy
 import argparse
 import os
 import pandas as pd
-import geopandas as gpd
+from arcgis import GIS
+from arcgis.features import GeoAccessor, GeoSeriesAccessor
+import glob
+#import geopandas as gpd
 from arcpy.sa import *
 
 arcpy.env.overwriteOutput = True
@@ -39,7 +42,7 @@ arcpy.CheckOutExtension("Spatial")
 temp_dir = os.path.join(os.getcwd(), 'Outputs')
 
 # determine network dataset to process
-mm_network = r"E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_08182020.gdb"
+mm_network = r"E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_02042021.gdb"
 mode = 'bike'
 # mm_network = args.multimodal_network
 # mode = args.mode
@@ -61,7 +64,7 @@ print("converting: {}...".format(network))
 create_linkpoints = True
 
 # Store elevation dataset, if provided
-elevation = r'E:\Data\Elevation\wf_elev.tif'
+#elevation = r'E:\Data\Elevation\wf_elev.tif'
 #elevation = args.elev
 
 # Cleanup files toggle
@@ -215,23 +218,32 @@ print('--deleting duplicate nodes')
 arcpy.DeleteIdentical_management(merged_pts, "XY_Key")
 
 # Get Z values from 10m DEM
-if elevation:
-    print('--extracting z values to nodes')
-    nodes_final = ExtractValuesToPoints(merged_pts, elevation, os.path.join(temp_dir, 'nodes_draft.shp'))
-    arcpy.CalculateField_management(nodes_final,"zcoord",'!{}!'.format('RASTERVALU'))
-    arcpy.DeleteField_management(nodes_final, "RASTERVALU")
-else: 
-    nodes_final = arcpy.FeatureClassToFeatureClass_conversion(merged_pts, temp_dir, 'nodes_draft.shp')
+print('--extracting z values to nodes')
+items = glob.glob('.\Inputs\Elevation_Tiles\wfrc_elev_tile*.tif')
+elevation = arcpy.MosaicToNewRaster_management(items, r'.\Inputs','Elev_Mosaic.tif',pixel_type='16_BIT_UNSIGNED',cellsize=10, number_of_bands=1)        
+
+
+nodes_final = ExtractValuesToPoints(merged_pts, elevation, os.path.join(temp_dir, 'nodes_draft.shp'))
+arcpy.CalculateField_management(nodes_final,"zcoord",'!{}!'.format('RASTERVALU'))
+arcpy.DeleteField_management(nodes_final, "RASTERVALU")
+
+#if elevation:
+    #print('--extracting z values to nodes')
+    #nodes_final = ExtractValuesToPoints(merged_pts, elevation, os.path.join(temp_dir, 'nodes_draft.shp'))
+    #arcpy.CalculateField_management(nodes_final,"zcoord",'!{}!'.format('RASTERVALU'))
+    #arcpy.DeleteField_management(nodes_final, "RASTERVALU")
+#else: 
+    #nodes_final = arcpy.FeatureClassToFeatureClass_conversion(merged_pts, temp_dir, 'nodes_draft.shp')
 
 
 # Remove duplicate nodes, extract z values seems to add duplicates
 print('--deleting duplicate nodes (again)')
 arcpy.DeleteIdentical_management(nodes_final, "XY_Key")
 
-nodes_shp = gpd.read_file(os.path.join(temp_dir, 'nodes_draft.shp'))
-nodes_shp = nodes_shp.reset_index()[['xcoord', 'ycoord', 'zcoord', 'XY_Key','geometry']]
-nodes_shp.columns = ['xcoord', 'ycoord', 'zcoord', 'XY_Key', 'geometry']
-nodes_shp.to_file(os.path.join(temp_dir, 'nodes.shp'))
+nodes_shp = pd.DataFrame.spatial.from_featureclass(os.path.join(temp_dir, 'nodes_draft.shp'))
+nodes_shp = nodes_shp.reset_index()[['xcoord', 'ycoord', 'zcoord', 'XY_Key','SHAPE']]
+nodes_shp.columns = ['xcoord', 'ycoord', 'zcoord', 'XY_Key', 'SHAPE']
+nodes_shp.spatial.to_featureclass(os.path.join(temp_dir, 'nodes.shp'),sanitize_columns=False)
 
 
 #=====================================
@@ -363,14 +375,28 @@ if create_linkpoints == True:
     print("--Total Nodes deleted: {}".format(total_joined_nodes))
     arcpy.DeleteField_management(linkpoints_layer, 'Join_Key')
     
-    # add z values if specified
-    if elevation:   
-        print('--extracting z values to linkpoints')
-        linkpoints_final = ExtractValuesToPoints(linkpoints_layer, elevation, os.path.join(temp_dir, 'linkpoints.shp'))
-        arcpy.CalculateField_management(linkpoints_final,"zcoord",'!{}!'.format('RASTERVALU'))
-        arcpy.DeleteField_management(linkpoints_final, "RASTERVALU")
-    else: 
-        linkpoints_final = arcpy.FeatureClassToFeatureClass_conversion(linkpoints_layer, temp_dir, 'linkpoints.shp')
+    # add z values
+    print('--extracting z values to linkpoints')
+    
+    #items = glob.glob('.\Inputs\Elevation_Tiles\wfrc_elev_tile*.tif')
+    #elevation = arcpy.MosaicToNewRaster_management(items, r'.\Inputs','Elev_Mosaic.tif',pixel_type='16_BIT_UNSIGNED',cellsize=10, number_of_bands=1)        
+    
+    linkpoints_final = ExtractValuesToPoints(linkpoints_layer, elevation, os.path.join(temp_dir, 'linkpoints.shp'))
+    arcpy.CalculateField_management(linkpoints_final,"zcoord",'!{}!'.format('RASTERVALU'))
+    arcpy.DeleteField_management(linkpoints_final, "RASTERVALU")
+   
+    
+    #if elevation:   
+        #print('--extracting z values to linkpoints')
+        
+        #items = glob.glob('.\Inputs\Elevation_Tiles\wfrc_elev_tile*.tif')
+        #elevation = arcpy.MosaicToNewRaster_management(items, r'.\Inputs','Elev_Mosaic.tif',pixel_type='16_BIT_UNSIGNED',cellsize=10, number_of_bands=1)        
+        
+        #linkpoints_final = ExtractValuesToPoints(linkpoints_layer, elevation, os.path.join(temp_dir, 'linkpoints.shp'))
+        #arcpy.CalculateField_management(linkpoints_final,"zcoord",'!{}!'.format('RASTERVALU'))
+        #arcpy.DeleteField_management(linkpoints_final, "RASTERVALU")
+    #else: 
+        #linkpoints_final = arcpy.FeatureClassToFeatureClass_conversion(linkpoints_layer, temp_dir, 'linkpoints.shp')
     
     # Remove duplicate nodes, extract z values seems to add duplicates
     print('--deleting duplicate linkpoints')
@@ -400,7 +426,7 @@ if create_linkpoints == True:
 
 print('--formatting nodes')
 nodes_field_names = ['node_id', 'xcoord', 'ycoord', 'zcoord']
-nodes_dataframe_formatted = nodes_dataframe[['FID', 'xcoord', 'ycoord', 'zcoord']].copy()
+nodes_dataframe_formatted = nodes_dataframe[['OID_', 'xcoord', 'ycoord', 'zcoord']].copy()
 nodes_dataframe_formatted.columns = nodes_field_names
 nodes_dataframe_formatted = nodes_dataframe_formatted.sort_values(by=['node_id'])
 
@@ -415,20 +441,20 @@ links_dataframe = links_dataframe.assign(from_node='', to_node='', from_x='', fr
 
 # Join with nodes to get start node IDs
 links_dataframe_temp = links_dataframe.merge(nodes_dataframe, left_on = 'Start_Key', right_on = 'XY_Key' , how = 'inner')
-links_dataframe_temp['from_node'] = links_dataframe_temp['FID_y']
+links_dataframe_temp['from_node'] = links_dataframe_temp['OID__y']
 links_dataframe_temp['from_x'] = links_dataframe_temp['xcoord']
 links_dataframe_temp['from_y'] = links_dataframe_temp['ycoord']
 
 
 # Join with nodes to get end node IDs
 links_dataframe_temp = links_dataframe_temp.merge(nodes_dataframe, left_on = 'End_Key', right_on = 'XY_Key' , how = 'inner')
-links_dataframe_temp['to_node'] = links_dataframe_temp['FID']
+links_dataframe_temp['to_node'] = links_dataframe_temp['OID_']
 links_dataframe_temp['to_x'] = links_dataframe_temp['xcoord_y']
 links_dataframe_temp['to_y'] = links_dataframe_temp['ycoord_y']
 
 # subset and rename columns
 links_field_names = ['link_id', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name', 'Oneway', 'Speed', 'AutoNetwork', 'BikeNetwork','PedNetwork', 'DriveTime', 'BikeTime', 'Pedestrian', 'Length_Miles', 'ConnectorN', 'RoadClass', 'AADT', 'Length_Meters', 'Signal', 'Sig_Count', 'BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']
-links_dataframe_formatted = links_dataframe_temp[['FID_x', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name_x', 'Oneway_x', 'Speed_x', 'AutoNetwor_x', 'BikeNetwor_x', 'PedNetwork_x', 'DriveTime_x', 'BikeTime_x', 'Pedestrian_x', 'Length_Mil_x', 'ConnectorN_x', 'RoadClass_x', 'AADT_x', 'Shape_Leng_x', 'Signal', 'Join_Count','BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']].copy()
+links_dataframe_formatted = links_dataframe_temp[['OID__x', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name_x', 'Oneway_x', 'Speed_x', 'AutoNetwor_x', 'BikeNetwor_x', 'PedNetwork_x', 'DriveTime_x', 'BikeTime_x', 'Pedestrian_x', 'Length_Mil_x', 'ConnectorN_x', 'RoadClass_x', 'AADT_x', 'Shape_Leng_x', 'Signal', 'Join_Count','BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']].copy()
 links_dataframe_formatted.columns = links_field_names
 links_dataframe_formatted = links_dataframe_formatted.sort_values(by=['link_id'])
 
@@ -437,24 +463,43 @@ links_dataframe_formatted = links_dataframe_formatted.sort_values(by=['link_id']
 # Calculate link slope
 #------------------------
 
-if elevation:
-    
-    ln_from = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'from_node', right_on = 'node_id' , how = 'inner')
-    ln_from = ln_from[['link_id', 'zcoord']].copy()
-    ln_from.columns = ['link_id', 'from_z']
-    
-    ln_to = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'to_node', right_on = 'node_id' , how = 'inner')
-    ln_to = ln_to[['link_id', 'zcoord']].copy()
-    ln_to.columns = ['link_id', 'to_z']
-    
-    links_df2 = links_dataframe_formatted.merge(ln_from, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
-    links_df2 = links_df2.merge(ln_to, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
-    
-    links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
-    links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
-    links_df2['Slope_Per'] = abs(links_df2['Slope_AB'])
+   
+ln_from = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'from_node', right_on = 'node_id' , how = 'inner')
+ln_from = ln_from[['link_id', 'zcoord']].copy()
+ln_from.columns = ['link_id', 'from_z']
 
-    links_dataframe_formatted = links_df2
+ln_to = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'to_node', right_on = 'node_id' , how = 'inner')
+ln_to = ln_to[['link_id', 'zcoord']].copy()
+ln_to.columns = ['link_id', 'to_z']
+
+links_df2 = links_dataframe_formatted.merge(ln_from, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
+links_df2 = links_df2.merge(ln_to, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
+
+links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
+links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
+links_df2['Slope_Per'] = abs(links_df2['Slope_AB'])
+
+links_dataframe_formatted = links_df2
+
+
+#if elevation:
+    
+    #ln_from = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'from_node', right_on = 'node_id' , how = 'inner')
+    #ln_from = ln_from[['link_id', 'zcoord']].copy()
+    #ln_from.columns = ['link_id', 'from_z']
+    
+    #ln_to = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'to_node', right_on = 'node_id' , how = 'inner')
+    #ln_to = ln_to[['link_id', 'zcoord']].copy()
+    #ln_to.columns = ['link_id', 'to_z']
+    
+    #links_df2 = links_dataframe_formatted.merge(ln_from, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
+    #links_df2 = links_df2.merge(ln_to, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
+    
+    #links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
+    #links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
+    #links_df2['Slope_Per'] = abs(links_df2['Slope_AB'])
+
+    #links_dataframe_formatted = links_df2
 
 
 
@@ -473,11 +518,11 @@ if create_linkpoints == True:
     print('--formatting linkpoints')
     linkpoints_dataframe = linkpoints_dataframe.assign(link_id='', point_no='')
     linkpoints_dataframe_temp = linkpoints_dataframe.merge(links_dataframe, left_on = 'id', right_on = 'id' , how = 'inner')
-    linkpoints_dataframe_temp['link_id'] = linkpoints_dataframe_temp['FID_y']
+    linkpoints_dataframe_temp['link_id'] = linkpoints_dataframe_temp['OID__y']
     
     # subset and rename columns
     linkpoints_field_names = ['linkpoint_id','link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord']
-    linkpoints_dataframe_formatted = linkpoints_dataframe_temp[['FID_x', 'link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord']].copy()
+    linkpoints_dataframe_formatted = linkpoints_dataframe_temp[['OID__x', 'link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord']].copy()
     linkpoints_dataframe_formatted.columns = linkpoints_field_names
     linkpoints_dataframe_formatted = linkpoints_dataframe_formatted.sort_values(by=['linkpoint_id'])
 
@@ -498,10 +543,10 @@ if create_linkpoints == True:
 
 
 # export links to shapefile
-links = gpd.read_file(links_final)
+links = pd.DataFrame.spatial.from_featureclass(links_final)
 links_data = pd.read_csv(os.path.join(temp_dir, 'links.csv'))[['link_id','from_z','to_z','Slope_AB','Slope_BA', 'Slope_Per']]
 links = links.merge(links_data, left_on = 'id', right_on = 'link_id' , how = 'inner')
-links.to_file(os.path.join(temp_dir, 'links.shp'))
+links.spatial.to_featureclass(os.path.join(temp_dir, 'links.shp'),sanitize_columns=False)
 
 # =====================================
 # Clean up
