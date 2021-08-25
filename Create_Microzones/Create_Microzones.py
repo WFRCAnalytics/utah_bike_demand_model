@@ -183,7 +183,7 @@ arcpy.SelectLayerByAttribute_management(filled_zones, "NEW_SELECTION", query)
 microzones_rings_erased = arcpy.Erase_analysis(zones_eliminated2, filled_zones, os.path.join(temp_dir, 'zones_erased.shp'))
 
 # add missing zones back
-merged_zones(os.path.join(temp_dir, 'merged_zones.shp'))
+merged_zones = (os.path.join(temp_dir, 'merged_zones.shp'))
 arcpy.Merge_management([microzones_rings_erased, filled_zones], merged_zones)
 
 
