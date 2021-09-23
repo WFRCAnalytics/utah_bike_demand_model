@@ -5,8 +5,8 @@ to_name: to_node
 
 link_attributes_by_direction:
     distance:
-        - Length_Miles
-        - Length_Miles
+        - Len_Miles
+        - Len_Miles
     traffic_signal:
         - Signal
         - Signal

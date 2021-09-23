@@ -765,6 +765,7 @@ arcpy.sa.ZonalStatisticsAsTable(maz_output, 'zone_id', out_p2r, out_table, 'DATA
 out_table_csv = os.path.join(temp_dir,"{}.csv".format(field))
 arcpy.TableToTable_conversion(out_table, os.path.dirname(out_table_csv), os.path.basename(out_table_csv))
 
+
 # merge table back with Microzones        
 zonal_table = pd.read_csv(out_table_csv)
 zonal_table =  zonal_table[['zone_id', 'MEAN']].copy()
@@ -857,44 +858,144 @@ maz_remm_data = maz_remm_data.merge(maz_centroid_join_df, left_on = 'zone_id', r
 # Summarize Bike Path and Bike Lane
 #-----------------------------------
 
-network_lyr = arcpy.MakeFeatureLayer_management(network, 'network_lyr')
-
-# filter network for bike lanes and paths
-query1 = (""" Bike_Lane = 1 """)
-arcpy.SelectLayerByAttribute_management(network_lyr, 'NEW_SELECTION', query1)
-bike_lanes = arcpy.MakeFeatureLayer_management(network_lyr, 'bike_lanes_lyr')
-
-query2 = (""" Bike_Path = 1 """)
-arcpy.SelectLayerByAttribute_management(network_lyr, 'NEW_SELECTION', query2)
-bike_paths =  arcpy.MakeFeatureLayer_management(network_lyr, 'bike_paths_lyr')
-
 # create output gdb
 gdb = os.path.join(temp_dir, "bike_network_sums.gdb")
 if not arcpy.Exists(gdb):
     arcpy.CreateFileGDB_management(os.path.dirname(gdb), os.path.basename(gdb))
 
+network_lyr = arcpy.MakeFeatureLayer_management(network, 'network_lyr')
+arcpy.SelectLayerByAttribute_management(network_lyr, 'CLEAR_SELECTION')
+
+# filter network for bike lanes and paths
+query1 = (""" Bike_Lane = 1 """)
+arcpy.SelectLayerByAttribute_management(network_lyr, 'NEW_SELECTION', query1)
+bike_lanes = arcpy.FeatureClassToFeatureClass_conversion(network_lyr, gdb, 'bike_lanes')
+#bike_lanes_lyr = arcpy.MakeFeatureLayer_management(bike_lanes, 'bike_lanes_lyr')
+
+query2 = (""" Bike_Path = 1 """)
+arcpy.SelectLayerByAttribute_management(network_lyr, 'NEW_SELECTION', query2)
+bike_paths = arcpy.FeatureClassToFeatureClass_conversion(network_lyr, gdb, 'bike_paths')
+#bike_paths_lyr =  arcpy.MakeFeatureLayer_management(bike_paths, 'bike_paths_lyr')
+
+# buffer zones out to .25 miles
+buffer = arcpy.Buffer_analysis(microzones, os.path.join(gdb, 'buff_zones'), '.25 Miles')
+
 # get length of bike paths within .25 miles of each buffered zone
 print("summarizing bike lane length...")
 bike_lane_sum = os.path.join(gdb, 'bike_lane_sum')
+#arcpy.SummarizeNearby_analysis(in_features=microzones, in_sum_features=bike_lanes_lyr, out_feature_class=bike_lane_sum,
+                               #distance_type ='STRAIGHT_LINE', distances=.25, distance_units='MILES',
+                               #keep_all_polygons='KEEP_ALL', sum_fields=[['Len_Miles', 'Sum']], sum_shape='ADD_SHAPE_SUM',
+                               #shape_unit='MILES')
 
-arcpy.SummarizeNearby_analysis(in_features=microzones, in_sum_features=bike_lanes, out_feature_class=bike_lane_sum,
-                               distance_type ='STRAIGHT_LINE', distances=.25, distance_units='MILES',
-                               keep_all_polygons='KEEP_ALL', sum_fields=[['Length_Mil', 'Sum']], sum_shape='ADD_SHAPE_SUM',
-                               shape_unit='MILES')
-
-bike_lane_sum_df = pd.DataFrame.spatial.from_featureclass(bike_lane_sum)[['zone_id', 'SUM_Length_Mil']]
+arcpy.SummarizeWithin_analysis(buffer, bike_lanes_lyr, bike_lane_sum, keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
+bike_lane_sum_df = pd.DataFrame.spatial.from_featureclass(bike_lane_sum)[['zone_id', 'sum_length_mil']]
 bike_lane_sum_df.columns = ['zone_id', 'bklane_len']
+
+#zones = arcpy.FeatureClassToFeatureClass_conversion(microzones, gdb, 'zones')
+#arcpy.AddField_management(zones, field_name="PARTS", field_type='float')
+#arcpy.AddField_management(zones, field_name="RINGS", field_type='float')
+#fields = ["shape@", 'PARTS', 'RINGS']
+#with arcpy.da.UpdateCursor(zones, fields) as cursor:
+    #for row in cursor:
+        #shape = row[0]
+        #parts = shape.partCount
+        #rings = shape.boundary().partCount   
+        #row[1] = parts
+        #row[2] = rings
+        #cursor.updateRow(row)
+
+#zone_explode = arcpy.MultipartToSinglepart_management (zones, os.path.join(gdb,'zone_explode'))
+#buffer = arcpy.Buffer_analysis(zone_explode, os.path.join(gdb, 'buff_zones'), '.25 Miles')
+#arcpy.SummarizeWithin_analysis(buffer, bike_lanes, os.path.join(gdb,'sum_bike_lanes'), keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
+
+
+##copyfeatures
+zones = arcpy.FeatureClassToFeatureClass_conversion(microzones, gdb, 'zones')
+
+##add lane/path sum fields
+#arcpy.AddField_management(zones, field_name="bklane_len", field_type='float')
+#arcpy.AddField_management(zones, field_name="bkpath_len", field_type='float')
+
+# update cursor (in_memory; shapefiles would also be deletable
+# buffer then summarize within?
+
+
+
+#buffdist = 0.25
+#count = arcpy.GetCount_management(zones)
+#progress = 1
+#with arcpy.da.UpdateCursor(zones, ['SHAPE@','bklane_len','bkpath_len', 'OID@']) as UpdateCursor:
+    #for UpdateRow in UpdateCursor:
+        
+        #print('working on zone {} of {}'.format(progress, count))
+        
+        ## buffer
+        #buffer = arcpy.Buffer_analysis(UpdateRow[0], 'in_memory\\temp_buff', '{} Miles'.format(buffdist))
+        
+        ##-----------
+        ## bike lane
+        ##-----------
+        
+        ## clip
+        #bl_clip = arcpy.Clip_analysis(bike_lanes, buffer, 'in_memory\\temp_bl_clip')
+        
+        ## get length in miles (meters -> miles)
+        #total_lane = 0
+        #with arcpy.da.SearchCursor(bl_clip, ['SHAPE@LENGTH']) as cursor:
+            #for row in cursor:
+                #total_lane = total_lane + row[0] * 0.000621371       
+        
+        ## set value
+        #UpdateRow[1] = total_lane
+        #arcpy.management.Delete(bl_clip)
+        
+        ##---------------
+        ## bike path
+        ##---------------
+        
+        ## clip
+        #bp_clip = arcpy.Clip_analysis(bike_paths, buffer, 'in_memory\\temp_bp_clip')
+        
+        ## get length in miles (meters -> miles)
+        #total_path = 0
+        #with arcpy.da.SearchCursor(bp_clip, ['SHAPE@LENGTH']) as cursor:
+            #for row in cursor:
+                #total_path = total_path + row[0] * 0.000621371       
+        
+        ## set value
+        #UpdateRow[2] = total_path
+        #arcpy.management.Delete(bp_clip)        
+        
+        ## update row
+        #arcpy.management.Delete(buffer)
+        #progress = progress + 1
+        
+        #try:
+            #UpdateCursor.updateRow(UpdateRow)
+        #except:
+            #print('there was a problem with OID: {}'.format(row[3]))
+
+# for each shape
+  # buffer shape by .25 miles
+  # clip lane and path features using buffered area
+  # clip path features using buffered area
+  # get the total mileage of lane/path
+  # set row[2] to value
+
+
+
 
 # get length of bike paths within .25 miles of each buffered zone
 print("summarizing bike path length...")
 bike_path_sum = os.path.join(gdb, 'bike_path_sum')
+#arcpy.SummarizeNearby_analysis(in_features=microzones, in_sum_features=bike_paths, out_feature_class=bike_path_sum,
+                               #distance_type ='STRAIGHT_LINE', distances=.25, distance_units='MILES',
+                               #keep_all_polygons='KEEP_ALL', sum_fields=[['Len_Miles', 'Sum']], sum_shape='ADD_SHAPE_SUM',
+                               #shape_unit='MILES')
 
-arcpy.SummarizeNearby_analysis(in_features=microzones, in_sum_features=bike_paths, out_feature_class=bike_path_sum,
-                               distance_type ='STRAIGHT_LINE', distances=.25, distance_units='MILES',
-                               keep_all_polygons='KEEP_ALL', sum_fields=[['Length_Mil', 'Sum']], sum_shape='ADD_SHAPE_SUM',
-                               shape_unit='MILES')
-
-bike_path_sum_df = pd.DataFrame.spatial.from_featureclass(bike_path_sum)[['zone_id', 'SUM_Length_Mil']]
+arcpy.SummarizeWithin_analysis(buffer, bike_paths_lyr, bike_lane_sum, keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
+bike_path_sum_df = pd.DataFrame.spatial.from_featureclass(bike_path_sum)[['zone_id', 'sum_length_mil']]
 bike_path_sum_df.columns = ['zone_id', 'bkpath_len']
 
 # merge the tables with the full data table
