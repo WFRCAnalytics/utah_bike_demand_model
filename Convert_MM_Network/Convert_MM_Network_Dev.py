@@ -432,7 +432,7 @@ if create_linkpoints == True:
     linkpoints_field_names = ['linkpoint_id','link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord','SHAPE']
     linkpoints_dataframe_formatted.columns = linkpoints_field_names
     linkpoints_dataframe_formatted = linkpoints_dataframe_formatted.sort_values(by=['linkpoint_id'])
-    linkpoints_dataframe_formatted['point_no'] = df.groupby('link_id')['link_id'].rank(method='first')
+    linkpoints_dataframe_formatted['point_no'] = linkpoints_dataframe_formatted.groupby('link_id')['link_id'].rank(method='first')
 
 
 #------------------------------
