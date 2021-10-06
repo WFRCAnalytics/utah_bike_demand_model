@@ -978,7 +978,7 @@ bike_lane_sum_df.columns = ['zone_id', 'bklane_len']
 # get length of bike paths within .25 miles of each buffered zone
 print("summarizing bike path length...")
 bike_path_sum = os.path.join(gdb, 'bike_path_sum')
-arcpy.SummarizeWithin_analysis(buffer, bike_paths_lyr, bike_lane_sum, keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
+arcpy.SummarizeWithin_analysis(buffer, bike_paths_lyr, bike_path_sum, keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
 bike_path_sum_df = pd.DataFrame.spatial.from_featureclass(bike_path_sum)[['zone_id', 'sum_length_mil']]
 bike_path_sum_df.columns = ['zone_id', 'bkpath_len']
 
