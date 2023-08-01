@@ -882,10 +882,10 @@ buffer = arcpy.Buffer_analysis(microzones, os.path.join(gdb, 'buff_zones'), '.25
 
 # get length of bike paths within .25 miles of each buffered zone
 print("summarizing bike lane length...")
-bike_lane_sum = os.path.join(gdb, 'bike_lane_sum')
-arcpy.SummarizeWithin_analysis(buffer, bike_lanes_lyr, bike_lane_sum, keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
-bike_lane_sum_df = pd.DataFrame.spatial.from_featureclass(bike_lane_sum)[['zone_id', 'sum_length_mil']]
-bike_lane_sum_df.columns = ['zone_id', 'bklane_len']
+#bike_lane_sum = os.path.join(gdb, 'bike_lane_sum')
+#arcpy.SummarizeWithin_analysis(buffer, bike_lanes_lyr, bike_lane_sum, keep_all_polygons='KEEP_ALL', sum_shape='ADD_SHAPE_SUM',shape_unit='MILES')
+#bike_lane_sum_df = pd.DataFrame.spatial.from_featureclass(bike_lane_sum)[['zone_id', 'sum_length_mil']]
+#bike_lane_sum_df.columns = ['zone_id', 'bklane_len']
 
 #zones = arcpy.FeatureClassToFeatureClass_conversion(microzones, gdb, 'zones')
 #arcpy.AddField_management(zones, field_name="PARTS", field_type='float')
@@ -909,66 +909,66 @@ bike_lane_sum_df.columns = ['zone_id', 'bklane_len']
 #zones = arcpy.FeatureClassToFeatureClass_conversion(microzones, gdb, 'zones')
 
 ##add lane/path sum fields
-#arcpy.AddField_management(zones, field_name="bklane_len", field_type='float')
-#arcpy.AddField_management(zones, field_name="bkpath_len", field_type='float')
+arcpy.AddField_management(zones, field_name="bklane_len", field_type='float')
+arcpy.AddField_management(zones, field_name="bkpath_len", field_type='float')
 
-# update cursor (in_memory; shapefiles would also be deletable
-# buffer then summarize within?
+#update cursor (in_memory; shapefiles would also be deletable
+#buffer then summarize within?
 
 
-#buffdist = 0.25
-#count = arcpy.GetCount_management(zones)
-#progress = 1
-#with arcpy.da.UpdateCursor(zones, ['SHAPE@','bklane_len','bkpath_len', 'OID@']) as UpdateCursor:
-    #for UpdateRow in UpdateCursor:
+buffdist = 0.25
+count = arcpy.GetCount_management(zones)
+progress = 1
+with arcpy.da.UpdateCursor(zones, ['SHAPE@','bklane_len','bkpath_len', 'OID@']) as UpdateCursor:
+    for UpdateRow in UpdateCursor:
         
-        #print('working on zone {} of {}'.format(progress, count))
+        print('working on zone {} of {}'.format(progress, count))
         
-        ## buffer
-        #buffer = arcpy.Buffer_analysis(UpdateRow[0], 'in_memory\\temp_buff', '{} Miles'.format(buffdist))
+        # buffer
+        buffer = arcpy.Buffer_analysis(UpdateRow[0], 'in_memory\\temp_buff', '{} Miles'.format(buffdist))
         
-        ##-----------
-        ## bike lane
-        ##-----------
+        #-----------
+        # bike lane
+        #-----------
         
-        ## clip
-        #bl_clip = arcpy.Clip_analysis(bike_lanes, buffer, 'in_memory\\temp_bl_clip')
+        # clip
+        bl_clip = arcpy.Clip_analysis(bike_lanes, buffer, 'in_memory\\temp_bl_clip')
         
-        ## get length in miles (meters -> miles)
-        #total_lane = 0
-        #with arcpy.da.SearchCursor(bl_clip, ['SHAPE@LENGTH']) as cursor:
-            #for row in cursor:
-                #total_lane = total_lane + row[0] * 0.000621371       
+        # get length in miles (meters -> miles)
+        total_lane = 0
+        with arcpy.da.SearchCursor(bl_clip, ['SHAPE@LENGTH']) as cursor:
+            for row in cursor:
+                total_lane = total_lane + row[0] * 0.000621371       
         
-        ## set value
-        #UpdateRow[1] = total_lane
-        #arcpy.management.Delete(bl_clip)
+        # set value
+        UpdateRow[1] = total_lane
+        arcpy.management.Delete(bl_clip)
         
-        ##---------------
-        ## bike path
-        ##---------------
+        #---------------
+        # bike path
+        #---------------
         
-        ## clip
-        #bp_clip = arcpy.Clip_analysis(bike_paths, buffer, 'in_memory\\temp_bp_clip')
+        # clip
+        bp_clip = arcpy.Clip_analysis(bike_paths, buffer, 'in_memory\\temp_bp_clip')
         
-        ## get length in miles (meters -> miles)
-        #total_path = 0
-        #with arcpy.da.SearchCursor(bp_clip, ['SHAPE@LENGTH']) as cursor:
-            #for row in cursor:
-                #total_path = total_path + row[0] * 0.000621371       
+        # get length in miles (meters -> miles)
+        total_path = 0
+        with arcpy.da.SearchCursor(bp_clip, ['SHAPE@LENGTH']) as cursor:
+            for row in cursor:
+                total_path = total_path + row[0] * 0.000621371       
         
-        ## set value
-        #UpdateRow[2] = total_path
-        #arcpy.management.Delete(bp_clip)        
+        # set value
+        UpdateRow[2] = total_path
+        arcpy.management.Delete(bp_clip)        
         
-        ## update row
-        #arcpy.management.Delete(buffer)
-        #progress = progress + 1
+        # update row
+        arcpy.management.Delete(buffer)
+        progress = progress + 1
         
-        #try:
-            #UpdateCursor.updateRow(UpdateRow)
-        #except:
-            #print('there was a problem with OID: {}'.format(row[3]))
+        try:
+            UpdateCursor.updateRow(UpdateRow)
+        except:
+            print('there was a problem with OID: {}'.format(row[3]))
 
 
 
@@ -1018,6 +1018,7 @@ del final_zones['Id']
 del final_zones['FID']
 names_lowercase = [att.lower() for att in list(final_zones.columns)]
 final_zones.columns = names_lowercase
+final_zones['zone_id'] = final_zones.index
 final_zones.to_csv(os.path.join(temp_dir, 'microzones.csv'), index=False)
 #arcpy.TableToTable_conversion(final_zones, temp_dir, 'microzones.csv')
 

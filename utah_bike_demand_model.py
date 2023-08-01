@@ -54,7 +54,7 @@ def main():
 
 
 @preprocessor()
-def preprocess_network(net):
+def preprocess_network(net, settings):
     """
     Add 'bike_commute' and 'bike_non_commute' network edge costs as a combination of
     existing attributes, including turns.
@@ -67,13 +67,15 @@ def preprocess_network(net):
     bike_lane = net.get_edge_values("bike_lane", dtype="bool")
     aadt = net.get_edge_values("AADT", dtype="float")
 
-    light = (10e3 < aadt) & (aadt < 20e3)
-    med = (20e3 <= aadt) & (aadt < 30e3)
-    heavy = 30e3 <= aadt
+    aadt_levels = settings.get("aadt_levels")
+    light = (aadt_levels["light"] < aadt) & (aadt < aadt_levels["medium"])
+    med = (aadt_levels["medium"] <= aadt) & (aadt < aadt_levels["heavy"])
+    heavy = aadt_levels["heavy"] <= aadt
 
-    small_slope = (2.0 < slope) & (slope < 4.0)
-    med_slope = (4.0 <= slope) & (slope < 6.0)
-    big_slope = 6.0 < slope
+    slope_levels = settings.get("slope_levels")
+    small_slope = (slope_levels["small"] < slope) & (slope < slope_levels["medium"])
+    med_slope = (slope_levels["medium"] <= slope) & (slope < slope_levels["big"])
+    big_slope = slope_levels["big"] < slope
 
     turn = net.get_edge_values("turn", dtype="bool")
     signal = net.get_edge_values("traffic_signal", dtype="bool")
@@ -85,63 +87,67 @@ def preprocess_network(net):
     left_or_straight = (turn_type == "left") | (turn_type == "straight")
     right = turn_type == "right"
 
-    light_cross = (5e3 < cross_aadt) & (cross_aadt < 10e3)
-    med_cross = (10e3 <= cross_aadt) & (cross_aadt < 20e3)
-    heavy_cross = 20e3 <= cross_aadt
+    aadt_cross = settings.get("aadt_cross")
+    light_cross = (aadt_cross["light"] < cross_aadt) & (cross_aadt < aadt_cross["medium"])
+    med_cross = (aadt_cross["medium"] <= cross_aadt) & (cross_aadt < aadt_cross["heavy"])
+    heavy_cross = aadt_cross["heavy"] <= cross_aadt
 
-    med_parallel = (10e3 < parallel_aadt) & (parallel_aadt < 20e3)
-    heavy_parallel = 20e3 <= parallel_aadt
+    aadt_parallel = settings.get("aadt_parallel")
+    med_parallel = (aadt_parallel["medium"] <= parallel_aadt) & (parallel_aadt < aadt_parallel["heavy"])
+    heavy_parallel = aadt_parallel["heavy"] <= parallel_aadt
 
     # distance coefficients
+    network_coef = settings.get("network_coef")
     bike_commute = distance * (
         1.0
-        + (bike_blvd * -0.108)
-        + (bike_path * -0.16)
-        + (small_slope * 0.371)
-        + (med_slope * 1.23)
-        + (big_slope * 3.239)
-        + (bike_lane * med * 0.25)
-        + (bike_lane * heavy * 1.65)
-        + (~bike_lane * light * 0.368)
-        + (~bike_lane * med * 1.4)
-        + (~bike_lane * heavy * 7.157)
+        + (bike_blvd * network_coef.get("bike_commute")["bike_blvd"])
+        + (bike_path * network_coef.get("bike_commute")["bike_path"])
+        + (small_slope * network_coef.get("bike_commute")["small_slope"])
+        + (med_slope * network_coef.get("bike_commute")["med_slope"])
+        + (big_slope * network_coef.get("bike_commute")["big_slope"])
+        + (bike_lane * med * network_coef.get("bike_commute")["bike_lane_medium_aadt"])
+        + (bike_lane * heavy * network_coef.get("bike_commute")["bike_lane_heavy_aadt"])
+        + (~bike_lane * light * network_coef.get("bike_commute")["light_aadt"])
+        + (~bike_lane * med * network_coef.get("bike_commute")["medium_aadt"])
+        + (~bike_lane * heavy * network_coef.get("bike_commute")["heavy_aadt"])
     )
 
     bike_non_commute = distance * (
         1.0
-        + (bike_blvd * -0.179)
-        + (bike_path * -0.26)
-        + (small_slope * 0.723)
-        + (med_slope * 2.904)
-        + (big_slope * 11.066)
-        + (bike_lane * med * 0.5)
-        + (bike_lane * heavy * 3.3)
-        + (~bike_lane * light * 0.7)
-        + (~bike_lane * med * 2.0)
-        + (~bike_lane * heavy * 10.0)
+        + (bike_blvd * network_coef.get("bike_non_commute")["bike_blvd"])
+        + (bike_path * network_coef.get("bike_non_commute")["bike_path"])
+        + (small_slope * network_coef.get("bike_non_commute")["small_slope"])
+        + (med_slope * network_coef.get("bike_non_commute")["med_slope"])
+        + (big_slope * network_coef.get("bike_non_commute")["big_slope"])
+        + (bike_lane * med * network_coef.get("bike_non_commute")["bike_lane_medium_aadt"])
+        + (bike_lane * heavy * network_coef.get("bike_non_commute")["bike_lane_heavy_aadt"])
+        + (~bike_lane * light * network_coef.get("bike_non_commute")["light_aadt"])
+        + (~bike_lane * med * network_coef.get("bike_non_commute")["medium_aadt"])
+        + (~bike_lane * heavy * network_coef.get("bike_non_commute")["heavy_aadt"])
     )
 
     # fixed-cost penalties
+    fixed_costs = settings.get("fixed_costs")
     bike_commute += (
-        (turn * 0.034)
-        + (signal * 0.017)
-        + (left_or_straight * light_cross * 0.048)
-        + (left_or_straight * med_cross * 0.05)
-        + (left_or_straight * heavy_cross * 0.26)
-        + (right * heavy_cross * 0.031)
-        + (left * med_parallel * 0.073)
-        + (left * heavy_parallel * 0.18)
+        (turn * fixed_costs.get("bike_commute")["turn"])
+        + (signal * fixed_costs.get("bike_commute")["signal"])
+        + (left_or_straight * light_cross * fixed_costs.get("bike_commute")["left_or_straight_light_cross"])
+        + (left_or_straight * med_cross * fixed_costs.get("bike_commute")["left_or_straight_med_cross"])
+        + (left_or_straight * heavy_cross * fixed_costs.get("bike_commute")["left_or_straight_heavy_cross"])
+        + (right * heavy_cross * fixed_costs.get("bike_commute")["right_heavy_cross"])
+        + (left * med_parallel * fixed_costs.get("bike_commute")["left_med_parallel"])
+        + (left * heavy_parallel * fixed_costs.get("bike_commute")["left_heavy_parallel"])
     )
 
     bike_non_commute += (
-        (turn * 0.074)
-        + (signal * 0.033)
-        + (left_or_straight * light_cross * 0.072)
-        + (left_or_straight * med_cross * 0.1)
-        + (left_or_straight * heavy_cross * 0.55)
-        + (right * heavy_cross * 0.06)
-        + (left * med_parallel * 0.15)
-        + (left * heavy_parallel * 0.4)
+        (turn * fixed_costs.get("bike_non_commute")["turn"])
+        + (signal * fixed_costs.get("bike_non_commute")["signal"])
+        + (left_or_straight * light_cross * fixed_costs.get("bike_non_commute")["left_or_straight_light_cross"])
+        + (left_or_straight * med_cross * fixed_costs.get("bike_non_commute")["left_or_straight_med_cross"])
+        + (left_or_straight * heavy_cross * fixed_costs.get("bike_non_commute")["left_or_straight_heavy_cross"])
+        + (right * heavy_cross * fixed_costs.get("bike_non_commute")["right_heavy_cross"])
+        + (left * med_parallel * fixed_costs.get("bike_non_commute")["left_med_parallel"])
+        + (left * heavy_parallel * fixed_costs.get("bike_non_commute")["left_heavy_parallel"])
     )
 
     net.set_edge_values("bike_commute", bike_commute)

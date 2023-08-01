@@ -23,23 +23,23 @@ trip_pzone_col: pzone
 
 # output file names
 trip_files:
-    rec_long: rec_long_trip.csv
-    rec_mtb: rec_mtb_trip.csv
-    rec_fam: rec_fam_trip.csv
-    rec_oth: rec_oth_trip.csv
-    work: work_trip.csv
-    sch_grade: sch_grade_trip.csv
-    sch_univ: sch_univ_trip.csv
-    maint: maint_trip.csv
-    disc: disc_trip.csv
-    rec_long_nhb: rec_long_nhb_trip.csv
-    rec_fam_nhb: rec_fam_nhb_trip.csv
-    rec_oth_nhb: rec_oth_nhb_trip.csv
-    work_nhb: work_nhb_trip.csv
-    sch_grade_nhb: sch_grade_nhb_trip.csv
-    sch_univ_nhb: sch_univ_nhb_trip.csv
-    maint_nhb: maint_nhb_trip.csv
-    disc_nhb: disc_nhb_trip.csv
+    rec_long:  rec_long_trip.parquet
+    rec_mtb:  rec_mtb_trip.parquet
+    rec_fam:  rec_fam_trip.parquet
+    rec_oth:  rec_oth_trip.parquet
+    work:  work_trip.parquet
+    sch_grade:  sch_grade_trip.parquet
+    sch_univ:  sch_univ_trip.parquet
+    maint:  maint_trip.parquet
+    disc:  disc_trip.parquet
+    rec_long_nhb:  rec_long_nhb_trip.parquet
+    rec_fam_nhb:  rec_fam_nhb_trip.parquet
+    rec_oth_nhb:  rec_oth_nhb_trip.parquet
+    work_nhb:  work_nhb_trip.parquet
+    sch_grade_nhb:  sch_grade_nhb_trip.parquet
+    sch_univ_nhb:  sch_univ_nhb_trip.parquet
+    maint_nhb:  maint_nhb_trip.parquet
+    disc_nhb:  disc_nhb_trip.parquet
 
 # Trip Generation
 
@@ -98,111 +98,119 @@ trip_gen_sum_factor:
     rec_long_nhb:
         segment: rec_long
         axis: 0
-        coef: 0.5
+        coef: 0.25
     rec_fam_nhb:
         segment: rec_fam
         axis: 0
-        coef: 0.548
+        coef: 0.274
     rec_oth_nhb:
         segment: rec_oth
         axis: 0
-        coef: 0.588
+        coef: 0.294
     work_nhb:
         segment: work
         axis: 0
-        coef: 0.763
+        coef: 0.382
     sch_grade_nhb:
         segment: sch_grade
         axis: 0
-        coef: 0.169
+        coef: 0.085
     sch_univ_nhb:
         segment: sch_univ
         axis: 0
-        coef: 0.75
+        coef: 0.375
     maint_nhb:
         segment: maint
         axis: 0
-        coef: 0.418
+        coef: 0.209
     disc_nhb:
         segment: disc
         axis: 0
-        coef: 0.319
+        coef: 0.160
 
 # number of household-day trips intercept, by segment
 trip_gen_consts:
-    rec_long: 0.012
+    rec_long: 0.003
     rec_fam: -0.007
     rec_oth: 0.016
-    work: 0.123
+    work: 0.11685
     sch_grade: -0.01
     sch_univ: -0.041
-    maint: -0.029
+    maint: -0.058
     disc: 0.001
 
 # trip-gen coefficients for zone attributes
 trip_gen_zone_coefs:
     rec_long:
-        inc1: 0.019
-        inc4: 0.033
+        inc1: 0.00475
+        inc4: 0.00825
     rec_fam:
-        inc1: 0.012
-        inc4: 0.011
+        inc1: 0.00300
+        inc4: 0.00275
     rec_oth:
-        inc1: 0.015
-        inc4: 0.022
+        inc1: 0.00375
+        inc4: 0.0055
         pct_poplc2: -0.069
     work:
-        inc1: 0.015
-        inc4: 0.071
-        pct_ag1: -0.16
-        pct_ag3: -0.068
+        inc1: 0.000375
+        inc4: 0.00125
+        pct_ag1: -0.114
+        pct_ag3: -0.16
     sch_grade:
-        inc1: 0.007
-        inc4: 0.048
+        inc1: 0.00175
+        inc4: 0.012
     sch_univ:
         inc1: 0.031
         inc4: -0.167
         pct_poplc3: -0.015
         pct_ag1: -0.167
     maint:
-        inc1: 0.107
-        inc4: 0.124
-        pct_ag1: -0.142
-        pct_ag3: -0.047
+        inc1: 0.02675
+        inc4: 0.031
+        pct_ag1: -0.0945
+        pct_ag3: -0.142
     disc:
-        inc1: 0.077
-        inc4: 0.092
-        pct_ag1: -0.167
-        pct_ag3: -0.047
+        inc1: 0.01925
+        inc4: 0.023
+        pct_ag1: -0.107
+        pct_ag3: -0.167
 
 # trip-gen coefficients for buffered zone attributes
 trip_gen_buffer_coefs:
     rec_long:
-        households: 8.58e-07
+        households: 4.29e-07
+        bkpath_len: 1.50e-04
     rec_fam:
         enrol_elem: 1.49e-06
-        enrol_midl: 1.49e-06
-        enrol_high: 1.49e-06
+        enrol_midl: 7.45e-07
+        enrol_high: 7.45e-07
+        bkpath_len: 1.50e-04
     rec_oth:
         park_score: 0.002
+        bkpath_len: 1.50e-04
     work:
         jobs3: 1.81e-05
-        jobs4: 2.96e-06
+        jobs4: 1.48e-07
         jobs5: -7.73e-06
-        jobs6: -1.49e-05
+        jobs6: -3.73e-06
         park_score: 0.003
         mixed_use: 6.17e-06
+        bkpath_len: 1.50e-04
     sch_grade:
         enrol_elem: 1.72e-06
-        enrol_midl: 1.72e-06
-        enrol_high: 1.72e-06
+        enrol_midl: 8.7e-07
+        enrol_high: 8.7e-07
+        bkpath_len: 1.50e-04
     sch_univ:
         coll_enrol: 2.08e-06
+        bkpath_len: 1.50e-04
     maint:
         coll_enrol: 2.22e-06
         mixed_use: 2.24e-06
+        bkpath_len: 1.50e-04
     disc:
         mixed_use: 3.13e-06
+        bkpath_len: 1.50e-04
 
 # reuse another segment's calculations for destination size
 reuse_dest_size:
@@ -218,7 +226,7 @@ reuse_dest_size:
 # calculate destination size from zone columns using given weights
 dest_choice_zone_coefs:
     rec_long:
-        ldr_score: 1.0
+        ldr_score: 0.5
     rec_mtb:
         mtbh_score: 1.0
     rec_fam:
@@ -228,14 +236,14 @@ dest_choice_zone_coefs:
         enrol_high: 1.0
         park_score: 200
     rec_oth:
-        jobs3: 1.0
+        jobs3: 0.5
         park_score: 4.77
         #area_sqmil: 234.6
     work:
         jobs_total: 1.0
-        jobs3: 2.69
+        jobs3: 0.6725
     sch_grade:
-        jobs3: 0.31
+        jobs3: 0.155
         enrol_elem: 1.0
         enrol_midl: 1.0
         enrol_high: 1.0
@@ -252,7 +260,7 @@ dest_choice_zone_coefs:
         enrol_midl: 0.11
         enrol_high: 0.11
     disc:
-        jobs3: 0.35
+        jobs3: 0.175
         jobs9: 1.0
         jobs7: 0.55
         households: 0.2

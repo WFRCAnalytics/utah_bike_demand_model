@@ -5,8 +5,8 @@ to_name: to_node
 
 link_attributes_by_direction:
     distance:
-        - Len_Miles
-        - Len_Miles
+        - Length_Miles
+        - Length_Miles
     traffic_signal:
         - Signal
         - Signal
@@ -32,9 +32,8 @@ node_name: node_id
 node_x_name: xcoord
 node_y_name: ycoord
 
-saved_graph: utah.pickle
-
-skim_file: skims.csv
+saved_graph: network.pickle
+skim_file: skims.parquet
 
 skim_ozone_col: orig_zone  # origin zone id
 skim_dzone_col: dest_zone  # destination zone id
@@ -44,3 +43,66 @@ skim_max_cost: 10  # maximum cost to save in skims
 skim_weights:
     - bike_commute
     - bike_non_commute
+
+aadt_levels:
+    light: 5000
+    medium: 10000
+    heavy: 15000
+
+aadt_cross:
+    light: 2500
+    medium: 5000
+    heavy: 10000
+
+aadt_parallel:
+    medium: 5000
+    heavy: 10000
+
+slope_levels:
+    small: 2
+    medium: 4
+    big: 6
+
+network_coef:
+    bike_commute:
+        bike_blvd: -0.216
+        bike_path: -0.32
+        small_slope: 0.371
+        med_slope: 1.23
+        big_slope: 3.239
+        light_aadt: 0.368
+        medium_aadt: 1.4
+        heavy_aadt: 7.157
+        bike_lane_medium_aadt: 0.125
+        bike_lane_heavy_aadt: 0.825
+    bike_non_commute:
+        bike_blvd: -0.358
+        bike_path: -0.52
+        small_slope: 0.723
+        med_slope: 2.904
+        big_slope: 11.066
+        light_aadt: 0.7
+        medium_aadt: 2.0
+        heavy_aadt: 10.0
+        bike_lane_medium_aadt: 0.25
+        bike_lane_heavy_aadt: 1.65
+
+fixed_costs:
+    bike_commute:
+        turn: 0.068
+        signal: 0.034
+        left_or_straight_light_cross: 0.096
+        left_or_straight_med_cross: 0.10
+        left_or_straight_heavy_cross: 0.52
+        right_heavy_cross: 0.062
+        left_med_parallel: 0.146
+        left_heavy_parallel: 0.36
+    bike_non_commute:
+        turn: 0.148
+        signal: 0.066
+        left_or_straight_light_cross: 0.144
+        left_or_straight_med_cross: 0.2
+        left_or_straight_heavy_cross: 1.1
+        right_heavy_cross: 0.12
+        left_med_parallel: 0.3
+        left_heavy_parallel: 0.8

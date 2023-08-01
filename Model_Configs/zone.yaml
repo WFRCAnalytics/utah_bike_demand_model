@@ -17,3 +17,4 @@ buffer_cols:
     - park_score
     - th_score
     - mixed_use
+    - bkpath_len
