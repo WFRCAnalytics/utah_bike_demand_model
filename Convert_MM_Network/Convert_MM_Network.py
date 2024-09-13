@@ -3,108 +3,72 @@ Created on Mon Mar 30 08:18:19 2020
 
 @author: jreynolds bgranberg 
 
-E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020.gdb bike --elev E:\Data\Elevation\wf_elev.tif
+E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020.gdb  --elev E:\Data\Elevation\wf_elev.tif
 
-E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020_JR.gdb bike --elev E:\Data\Elevation\wf_elev.tif
+E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020_JR.gdb  --elev E:\Data\Elevation\wf_elev.tif
 
-E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020.gdb bike
+E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020.gdb 
 
-E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020.gdb ped
+E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020.gdb
 
 """
 
 import arcpy
-import argparse
 import os
+import yaml
 import pandas as pd
-import geopandas as gpd
-from arcpy.sa import *
+from arcpy.sa import ExtractValuesToPoints
+import glob
+from arcgis.features import GeoAccessor, GeoSeriesAccessor
 
 arcpy.env.overwriteOutput = True
 arcpy.CheckOutExtension("Spatial")
+arcpy.env.parallelProcessingFactor = "90%"
 
-   
-# Command line arguments
-parser = argparse.ArgumentParser("Convert Multimodal Network to Node/Link format")
-parser.add_argument('multimodal_network', type=str, help='input multimodal network gdb from WFRC')
-parser.add_argument('mode', type=str, choices=['bike','ped', 'auto'], help='bike, auto, or ped')
-parser.add_argument('--elev', type=str, help='path to overlapping elevation dataset')
-args = parser.parse_args()
+#=====================================
+# Inputs
+#=====================================
 
-print(args.multimodal_network)
-print(args.mode)
-print(args.elev)
+def load_yaml(file_path):
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
 
-# temporary directory
-temp_dir = os.path.join(os.getcwd(), 'Results')
+config = load_yaml('Convert_MM_Network.yaml')
+create_linkpoints = config['create_linkpoints']
+perform_clean_up = config['perform_clean_up']
+network = config['network']
+study_area = config['study_area']
+traffic_signals = config['traffic_signals']
+
+#=====================================
+# Data and environment prep
+#=====================================
+
+outputs = ['.\\Outputs', 'scratch.gdb', "bike_network.gdb"]
+if not os.path.exists(outputs[0]):
+    os.makedirs(outputs[0])
+
+scratch_gdb = os.path.join(outputs[0], outputs[1])
+network_gdb = os.path.join(outputs[0], outputs[2])
+if not arcpy.Exists(scratch_gdb): arcpy.CreateFileGDB_management(outputs[0], outputs[1])
+if not arcpy.Exists(network_gdb): arcpy.CreateFileGDB_management(outputs[0], outputs[2])
 
 # determine network dataset to process
-# mm_network = r'E:\Micromobility\Data\Multimodal_Network\MM_NetworkDataset_06242020_JR.gdb'
-# mode = 'bike'
-mm_network = args.multimodal_network
-mode = args.mode
-
-
-if mode == 'bike':
-    network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'BikeNetwork')
-if mode == 'auto':
-    network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'AutoNetwork')
-if mode == 'ped':
-    network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'PedNetwork')
-if mode == 'BikePedAuto':
-    network = os.path.join(os.path.join(mm_network, 'NetworkDataset'), 'BikePedAuto')
-
 print("converting: {}...".format(network))
 
-
-# create linkpoints toggle
-create_linkpoints = False
-
-# Store elevation dataset, if provided
-# elevation = r'E:\Data\Elevation\wf_elev.tif'
-elevation = args.elev
-
-# Cleanup files toggle
-perform_clean_up = True
-
-#=====================================
-# Prep data
-#=====================================
-
-# create outputs folder
-if not os.path.exists(temp_dir):
-    os.makedirs(temp_dir)
-
-study_area = os.path.join(os.getcwd(), 'Inputs', 'TAZ_WFRC_UTM12.shp')
-
 # select road segments that overlap with study area
-lines_copy_lyr = arcpy.MakeFeatureLayer_management(network,"temp_lines_lyr")
-arcpy.SelectLayerByLocation_management("temp_lines_lyr", 'intersect', study_area)
-lines_study_area = arcpy.FeatureClassToFeatureClass_conversion(lines_copy_lyr, temp_dir, 'temp_lines.shp')
+lines_copy_lyr = arcpy.MakeFeatureLayer_management(network,"temp_lines_lyr", where_clause="BikeNetwork = 'Y'")
+arcpy.SelectLayerByLocation_management("temp_lines_lyr", 'intersect', study_area, selection_type='SUBSET_SELECTION')
+lines_study_area = arcpy.FeatureClassToFeatureClass_conversion(lines_copy_lyr, scratch_gdb, '_00_temp_lines')
 
-# erase 
-print("Adding canyon roads...")
-canyon_roads = r'.\Inputs\Canyon_Roads.shp'
-lines_erased = os.path.join(temp_dir, 'lines_erased.shp')
-arcpy.Erase_analysis(lines_study_area, canyon_roads, lines_erased)
-
-# merge
-arcpy.Append_management([canyon_roads], lines_erased, schema_type='NO_TEST')
-
-
-# split lines at vertices
-#lines_copy = arcpy.FeatureToLine_management(lines_copy_lyr, os.path.join(temp_dir, 'temp_lines2.shp'))
-lines_copy = arcpy.FeatureToLine_management(lines_erased, os.path.join(temp_dir, 'temp_lines2.shp'))
+lines_copy = arcpy.FeatureToLine_management(lines_study_area, os.path.join(scratch_gdb, '_01_temp_lines2'))
 
 lines_copy_lyr = arcpy.MakeFeatureLayer_management(lines_copy,"temp_lines_lyr2")
 
-
-
-
 # Add unique ID
-unique_id_field = 'id'
+unique_id_field = 'temp_id'
 arcpy.AddField_management(lines_copy, field_name=unique_id_field, field_type='LONG')
-arcpy.CalculateField_management(lines_copy, unique_id_field, '"!FID!"')
+arcpy.CalculateField_management(lines_copy, unique_id_field, '"!OBJECTID!"')
 
 #=====================================
 # Create Nodes
@@ -116,16 +80,16 @@ print('Creating Nodes')
 print('--generating start points')
 
 # get start points for each line, 
-start_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'start_pts_initial.shp'), 'START')
+start_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(scratch_gdb, '_02_start_pts_initial'), 'START')
 
 # Delete extra Start nodes, accounts for rare instance of multiple end nodes created
 print('--checking for extra start points')
 arcpy.AddField_management(start_pts, field_name='Temp_ID', field_type='LONG')
-arcpy.CalculateField_management(start_pts, 'Temp_ID', '"!FID!"')
-start_pts_sorted = arcpy.Sort_management(start_pts, os.path.join(temp_dir, 'start_pts.shp'), sort_field=[["Temp_ID", "ASCENDING"]])
+arcpy.CalculateField_management(start_pts, 'Temp_ID', '"!OBJECTID!"')
+start_pts_sorted = arcpy.Sort_management(start_pts, os.path.join(scratch_gdb, '_03_start_pts'), sort_field=[["Temp_ID", "ASCENDING"]])
 
 previous_id = None
-with arcpy.da.UpdateCursor(start_pts_sorted, ['id']) as cursor:
+with arcpy.da.UpdateCursor(start_pts_sorted, ['temp_id']) as cursor:
     for row in cursor:
         
         if row[0] == previous_id:
@@ -139,34 +103,30 @@ start_pts = start_pts_sorted
 # add xy coords to start points
 arcpy.AddField_management(start_pts, field_name="xcoord", field_type='double')
 arcpy.AddField_management(start_pts, field_name="ycoord", field_type='double')
-arcpy.CalculateGeometryAttributes_management(start_pts, [["xcoord", "POINT_X"],["ycoord", "POINT_Y"]])
+with arcpy.da.UpdateCursor(start_pts, ['xcoord', 'ycoord', 'SHAPE@X', 'SHAPE@Y']) as cursor:
+    for row in cursor:
+        row[0] = row[2]
+        row[1] = row[3]
+        cursor.updateRow(row)
 
-# this might allow this section to run in command line
-# with arcpy.da.UpdateCursor(start_pts, ['xcoord', 'ycoord', 'SHAPE@X', 'SHAPE@Y']) as cursor:
-#     for row in cursor:
-#         row[0] = row[2]
-#         row[1] = row[3]
-#         cursor.updateRow(row)
-        
-# create xy key to start points
+# create xy key for  start points
 arcpy.AddField_management(start_pts, field_name="XY_Key", field_type='string')
 arcpy.CalculateField_management(start_pts,"XY_Key",'"!{}!|!{}!"'.format('xcoord', 'ycoord'))
-
 
 # End points
 print('--generating end points')
 
 # get end points for each line
-end_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'end_pts_initial.shp'), 'END')
+end_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(scratch_gdb, '_04_end_pts_initial'), 'END')
 
 # Delete extra End nodes, accounts for rare instance of multiple end nodes created
 print('--checking for extra end points')
 arcpy.AddField_management(end_pts, field_name='Temp_ID', field_type='LONG')
-arcpy.CalculateField_management(end_pts, 'Temp_ID', '"!FID!"')
-end_pts_sorted = arcpy.Sort_management(end_pts, os.path.join(temp_dir, 'end_pts.shp'), sort_field=[["Temp_ID", "DESCENDING"]])
+arcpy.CalculateField_management(end_pts, 'Temp_ID', '"!OBJECTID!"')
+end_pts_sorted = arcpy.Sort_management(end_pts, os.path.join(scratch_gdb, '_05_end_pts'), sort_field=[["Temp_ID", "DESCENDING"]])
 
 previous_id = None
-with arcpy.da.UpdateCursor(end_pts_sorted, ['id']) as cursor:
+with arcpy.da.UpdateCursor(end_pts_sorted, ['temp_id']) as cursor:
     for row in cursor:
         
         if row[0] == previous_id:
@@ -180,14 +140,11 @@ end_pts = end_pts_sorted
 # add xy coords to end points
 arcpy.AddField_management(end_pts, field_name="xcoord", field_type='double')
 arcpy.AddField_management(end_pts, field_name="ycoord", field_type='double')
-arcpy.CalculateGeometryAttributes_management(end_pts, [["xcoord", "POINT_X"], ["ycoord", "POINT_Y"]])
-
-# this might allow this section to run in command line
-# with arcpy.da.UpdateCursor(end_pts, ['xcoord', 'ycoord', 'SHAPE@X', 'SHAPE@Y']) as cursor:
-#     for row in cursor:
-#         row[0] = row[2]
-#         row[1] = row[3]
-#         cursor.updateRow(row)
+with arcpy.da.UpdateCursor(end_pts, ['xcoord', 'ycoord', 'SHAPE@X', 'SHAPE@Y']) as cursor:
+    for row in cursor:
+        row[0] = row[2]
+        row[1] = row[3]
+        cursor.updateRow(row)
 
 # add xy key to end points
 arcpy.AddField_management(end_pts, field_name="XY_Key", field_type='string')
@@ -196,17 +153,17 @@ arcpy.CalculateField_management(end_pts,"XY_Key",'"!{}!|!{}!"'.format('xcoord', 
 
 # join with centerlines, copy xy key
 arcpy.AddJoin_management(lines_copy_lyr, unique_id_field, start_pts, unique_id_field)
-arcpy.CalculateField_management(lines_copy_lyr,"Start_Key",'!{}!'.format('start_pts.XY_Key'))
+arcpy.CalculateField_management(lines_copy_lyr,"Start_Key",'!{}!'.format('_03_start_pts.XY_Key'))
 arcpy.RemoveJoin_management (lines_copy_lyr)
 
 # join with centerlines, copy xy key
 arcpy.AddJoin_management(lines_copy_lyr, unique_id_field, end_pts, unique_id_field)
-arcpy.CalculateField_management(lines_copy_lyr,"End_Key",'!{}!'.format('end_pts.XY_Key'))
+arcpy.CalculateField_management(lines_copy_lyr,"End_Key",'!{}!'.format('_05_end_pts.XY_Key'))
 arcpy.RemoveJoin_management (lines_copy_lyr)
 
 # Create 'both ends' nodes data set by merging start nodes and end nodes
 print('--merging start and end points')    
-merged_pts = arcpy.Merge_management([start_pts, end_pts], os.path.join(temp_dir, "merged_pts.shp"))
+merged_pts = arcpy.Merge_management([start_pts, end_pts], os.path.join(scratch_gdb, "_06_merged_pts"))
 arcpy.AddField_management(merged_pts, field_name="zcoord", field_type='LONG')
 
 # Remove duplicate nodes (dissolve drops fields, delete identical does not)
@@ -214,53 +171,36 @@ print('--deleting duplicate nodes')
 arcpy.DeleteIdentical_management(merged_pts, "XY_Key")
 
 # Get Z values from 10m DEM
-if elevation:
-    print('--extracting z values to nodes')
-    nodes_final = ExtractValuesToPoints(merged_pts, elevation, os.path.join(temp_dir, 'nodes_draft.shp'))
-    arcpy.CalculateField_management(nodes_final,"zcoord",'!{}!'.format('RASTERVALU'))
-    arcpy.DeleteField_management(nodes_final, "RASTERVALU")
-else: 
-    nodes_final = arcpy.FeatureClassToFeatureClass_conversion(merged_pts, temp_dir, 'nodes_draft.shp')
-
+print('--mosaicing elevation tiles')
+elevation_tifs  = glob.glob(os.path.join(r'.\Inputs\Elevation_Tiles', '*.tif'))
+elevation = os.path.join(outputs[0], "elevation.tif")
+if os.path.exists(elevation) == False:
+    arcpy.MosaicToNewRaster_management(elevation_tifs, outputs[0], "elevation.tif", pixel_type="16_BIT_UNSIGNED", cellsize="10", number_of_bands="1", mosaic_method="MEAN")
+print('--extracting z values to nodes')
+nodes_extract = os.path.abspath(os.path.join(scratch_gdb, '_07_nodes_extract'))
+arcpy.sa.ExtractValuesToPoints(merged_pts, elevation, nodes_extract,"NONE", "VALUE_ONLY")
+arcpy.CalculateField_management(nodes_extract,"zcoord",'!{}!'.format('RASTERVALU'))
+arcpy.DeleteField_management(nodes_extract, "RASTERVALU")
 
 # Remove duplicate nodes, extract z values seems to add duplicates
 print('--deleting duplicate nodes (again)')
-arcpy.DeleteIdentical_management(nodes_final, "XY_Key")
+arcpy.DeleteIdentical_management(nodes_extract, "XY_Key")
 
-nodes_shp = gpd.read_file(os.path.join(temp_dir, 'nodes_draft.shp'))
-nodes_shp = nodes_shp.reset_index()[['xcoord', 'ycoord', 'zcoord', 'XY_Key','geometry']]
-nodes_shp.columns = ['xcoord', 'ycoord', 'zcoord', 'XY_Key', 'geometry']
-nodes_shp.to_file(os.path.join(temp_dir, 'nodes.shp'))
-
+arcpy.AddField_management(nodes_extract, field_name="node_id", field_type='LONG')
+arcpy.CalculateField_management(nodes_extract,"node_id",'!OBJECTID!-1')
 
 #=====================================
 # Create Links
 #=====================================
  
 print('Creating Links')    
-
-# recalc meters and miles
-with arcpy.da.UpdateCursor(lines_copy_lyr, ['Length_Mil', 'Shape_Leng', 'SHAPE@LENGTH']) as cursor:
-    for row in cursor:
-        
-        row[1] = row[2]
-        
-        # meters to miles
-        row[0] = row[2] * 0.000621371
-        cursor.updateRow(row)    
-
-# # Add Bike boulevard attribute
-# arcpy.AddField_management(lines_copy_lyr, field_name="BikeBlvd", field_type='Short')
-
-# with arcpy.da.UpdateCursor(lines_copy_lyr, ['BIKE_L', 'BIKE_R', 'BikeBlvd']) as cursor:
-#     for row in cursor:
-        
-#         if row[0] in ['3B', '3C']:
-#             row[2] = 1
-#         else:
-#             row[2] = 0
-            
-#         cursor.updateRow(row)
+print('--recalculating length')
+arcpy.AddField_management(lines_copy_lyr, field_name='Length_Meters', field_type='float')
+arcpy.management.CalculateField(lines_copy_lyr, 'Length_Meters', f'!SHAPE_LENGTH!', "PYTHON3")
+arcpy.management.CalculateField(lines_copy_lyr, 'Length_Miles', f'!Length_Meters!* 0.000621371', "PYTHON3")
+  
+arcpy.AddField_management(lines_copy_lyr, field_name="link_id", field_type='LONG')
+arcpy.CalculateField_management(lines_copy_lyr,"link_id",'!OBJECTID!-1')
 
 #------------------------------------------------
 # Add bike_lane, bike_path, bike_blvd attributes
@@ -275,12 +215,13 @@ arcpy.AddField_management(lines_copy_lyr, field_name="Bike_Blvd", field_type='Sh
 bl = ['2','2A','2B', '3A']
 
 # bike path code
-bp = ['Trails', '1','1A','1B','1C']
+bp = ['Trails', '1','1A','1B','1C', 'PP']
 
 # bike blvd codes
 bb = ['3B', '3C']
 
-fields = ['BIKE_L', 'BIKE_R', 'SourceData', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']
+fields = ['BIKE_L', 'BIKE_R', 'SourceData', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd', 'AADT']
+print('--setting bike attributes')
 with arcpy.da.UpdateCursor(lines_copy_lyr, fields) as cursor:
     for row in cursor:
              
@@ -290,17 +231,20 @@ with arcpy.da.UpdateCursor(lines_copy_lyr, fields) as cursor:
         else:
             row[3] = 0
             
-        # set bike path attribute
-        if row[2] in bp or row[0] in bp or row[1] in bp:
-            row[4] = 1
-        else:
-            row[4] = 0
-            
         # set bike blvd attribute
         if row[0] in bb or row[1] in bb:
             row[5] = 1
         else:
-            row[5] = 0
+            row[5] = 0        
+            
+        # set bike path attribute
+        if row[2] in bp or row[0] in bp or row[1] in bp:
+            row[4] = 1
+            row[6] = 0 # set aadt to zero
+        else:
+            row[4] = 0
+            
+        
             
         cursor.updateRow(row)
 
@@ -308,14 +252,13 @@ with arcpy.da.UpdateCursor(lines_copy_lyr, fields) as cursor:
 # Add traffic signal attribute
 #------------------------------------------------
 
+
 # Load and buffer traffic signals
-traffic_signals = os.path.join(os.getcwd(), 'Inputs', 'Traffic_Signals.shp')
-buffered_signals = os.path.join(temp_dir, "Buffered_Signals.shp")
-arcpy.Buffer_analysis(traffic_signals, buffered_signals, "20 Meters")
+print('--adding signal attribute')
+buffered_signals = arcpy.Buffer_analysis(traffic_signals, os.path.join(scratch_gdb, "_08_Buffered_Signals"), "20 Meters")
 
 # Perform spatial join
-links_final = os.path.join(temp_dir, "links_temp.shp")
-arcpy.SpatialJoin_analysis(lines_copy_lyr, buffered_signals, links_final, "JOIN_ONE_TO_ONE", "KEEP_ALL", match_option="INTERSECT")
+links_signal_join = arcpy.SpatialJoin_analysis(lines_copy_lyr, buffered_signals, os.path.join(scratch_gdb, "_09_links_signal_join"), "JOIN_ONE_TO_ONE", "KEEP_ALL", match_option="INTERSECT")
 
 
 #=====================================
@@ -327,12 +270,16 @@ if create_linkpoints == True:
     print('--generating all points')
     
     # get all points for each line
-    all_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(temp_dir, 'all_pts.shp'), 'ALL')
+    all_pts = arcpy.FeatureVerticesToPoints_management(lines_copy_lyr, os.path.join(scratch_gdb, '_10_all_pts'), 'ALL')
     
     # add xy coords to all points
     arcpy.AddField_management(all_pts, field_name="xcoord", field_type='double')
     arcpy.AddField_management(all_pts, field_name="ycoord", field_type='double')
-    arcpy.CalculateGeometryAttributes_management(all_pts, [["xcoord", "POINT_X"],["ycoord", "POINT_Y"]])
+    with arcpy.da.UpdateCursor(all_pts, ['xcoord', 'ycoord', 'SHAPE@X', 'SHAPE@Y']) as cursor:
+        for row in cursor:
+            row[0] = row[2]
+            row[1] = row[3]
+            cursor.updateRow(row)    
     
     # add xy key to all points
     arcpy.AddField_management(all_pts, field_name="XY_Key", field_type='string')
@@ -344,8 +291,8 @@ if create_linkpoints == True:
     # Join all nodes to both ends nodes and calculate a field to use for tracking start/end nodes
     linkpoints_layer = arcpy.MakeFeatureLayer_management(all_pts,"all_pts_lyr")
     arcpy.AddField_management(linkpoints_layer, field_name="Join_Key", field_type='string')
-    arcpy.AddJoin_management(linkpoints_layer, "XY_Key", nodes_final, 'XY_Key', join_type="KEEP_ALL")
-    arcpy.CalculateField_management(linkpoints_layer,"all_pts.Join_Key",'!{}!'.format('nodes_draft.XY_Key'))
+    arcpy.AddJoin_management(linkpoints_layer, "XY_Key", nodes_extract, 'XY_Key', join_type="KEEP_ALL")
+    arcpy.CalculateField_management(linkpoints_layer,"all_pts.Join_Key",'!{}!'.format('_07_nodes_extract.XY_Key'))
     arcpy.RemoveJoin_management(linkpoints_layer)
     arcpy.AddField_management(linkpoints_layer, field_name="zcoord", field_type='LONG')
     
@@ -363,44 +310,38 @@ if create_linkpoints == True:
     arcpy.DeleteField_management(linkpoints_layer, 'Join_Key')
     
     # add z values if specified
-    if elevation:   
-        print('--extracting z values to linkpoints')
-        linkpoints_final = ExtractValuesToPoints(linkpoints_layer, elevation, os.path.join(temp_dir, 'linkpoints.shp'))
-        arcpy.CalculateField_management(linkpoints_final,"zcoord",'!{}!'.format('RASTERVALU'))
-        arcpy.DeleteField_management(linkpoints_final, "RASTERVALU")
-    else: 
-        linkpoints_final = arcpy.FeatureClassToFeatureClass_conversion(linkpoints_layer, temp_dir, 'linkpoints.shp')
+    print('--extracting z values to linkpoints')
+    linkpoints_extract = os.path.abspath(os.path.join(scratch_gdb, '_11_linkpoints_extract'))
+    arcpy.sa.ExtractValuesToPoints(linkpoints_layer, elevation, linkpoints_extract,"NONE", "VALUE_ONLY")
+    arcpy.CalculateField_management(linkpoints_extract,"zcoord",'!{}!'.format('RASTERVALU'))
+    arcpy.DeleteField_management(linkpoints_extract, "RASTERVALU")
+
     
     # Remove duplicate nodes, extract z values seems to add duplicates
     print('--deleting duplicate linkpoints')
-    arcpy.DeleteIdentical_management(linkpoints_final, "XY_Key")
+    arcpy.DeleteIdentical_management(linkpoints_extract, "XY_Key")
 
 #=====================================
-# Create CSV Tables
+# read nodes and links into pandas
 #=====================================
 
-print('Creating table outputs')
-
-# Convert shapefiles to csv for formatting in Pandas
-arcpy.TableToTable_conversion(nodes_final, temp_dir, 'nodes_temp.csv')
-arcpy.TableToTable_conversion(links_final, temp_dir, 'links_temp.csv')
-if create_linkpoints == True:
-    arcpy.TableToTable_conversion(linkpoints_final, temp_dir, 'linkpoints_temp.csv')
+print('Creating final outputs')
 
 # Read csvs into pandas
-nodes_dataframe = pd.read_csv(os.path.join(temp_dir, 'nodes_temp.csv'))
-links_dataframe = pd.read_csv(os.path.join(temp_dir, 'links_temp.csv'))
+nodes_dataframe = pd.DataFrame.spatial.from_featureclass(nodes_extract)  
+links_dataframe = pd.DataFrame.spatial.from_featureclass(links_signal_join[0])  
 if create_linkpoints == True:
-    linkpoints_dataframe = pd.read_csv(os.path.join(temp_dir, 'linkpoints_temp.csv'))
+    linkpoints_dataframe = pd.DataFrame.spatial.from_featureclass(linkpoints_extract)  
+
 
 #-------------------
 # format nodes
 #-------------------
 
 print('--formatting nodes')
-nodes_field_names = ['node_id', 'xcoord', 'ycoord', 'zcoord']
-nodes_dataframe_formatted = nodes_dataframe[['FID', 'xcoord', 'ycoord', 'zcoord']].copy()
-nodes_dataframe_formatted.columns = nodes_field_names
+nodes_dataframe_formatted = nodes_dataframe[['node_id', 'xcoord', 'ycoord', 'zcoord', 'XY_Key', 'SHAPE']].copy()
+nodes_field_names = ['node_id', 'xcoord', 'ycoord', 'zcoord', 'XY_Key']
+nodes_dataframe_formatted.columns = nodes_field_names + ['SHAPE']
 nodes_dataframe_formatted = nodes_dataframe_formatted.sort_values(by=['node_id'])
 
 #-------------------
@@ -413,73 +354,70 @@ print('--formatting links')
 links_dataframe = links_dataframe.assign(from_node='', to_node='', from_x='', from_y='', to_x='', to_y='')
 
 # Join with nodes to get start node IDs
-links_dataframe_temp = links_dataframe.merge(nodes_dataframe, left_on = 'Start_Key', right_on = 'XY_Key' , how = 'inner')
-links_dataframe_temp['from_node'] = links_dataframe_temp['FID_y']
+links_dataframe_temp = links_dataframe.merge(nodes_dataframe_formatted.drop('SHAPE', axis=1), left_on = 'Start_Key', right_on = 'XY_Key' , how = 'left')
+links_dataframe_temp['from_node'] = links_dataframe_temp['node_id']
 links_dataframe_temp['from_x'] = links_dataframe_temp['xcoord']
 links_dataframe_temp['from_y'] = links_dataframe_temp['ycoord']
-
+links_dataframe_temp.drop(nodes_field_names, axis=1, inplace=True)
 
 # Join with nodes to get end node IDs
-links_dataframe_temp = links_dataframe_temp.merge(nodes_dataframe, left_on = 'End_Key', right_on = 'XY_Key' , how = 'inner')
-links_dataframe_temp['to_node'] = links_dataframe_temp['FID']
-links_dataframe_temp['to_x'] = links_dataframe_temp['xcoord_y']
-links_dataframe_temp['to_y'] = links_dataframe_temp['ycoord_y']
+links_dataframe_temp = links_dataframe_temp.merge(nodes_dataframe_formatted.drop('SHAPE',  axis=1), left_on = 'End_Key', right_on = 'XY_Key' , how = 'left')
+links_dataframe_temp['to_node'] = links_dataframe_temp['node_id']
+links_dataframe_temp['to_x'] = links_dataframe_temp['xcoord']
+links_dataframe_temp['to_y'] = links_dataframe_temp['ycoord']
+links_dataframe_temp.drop(nodes_field_names,  axis=1, inplace=True)
+
+links_dataframe_temp['Signal'] = links_dataframe_temp['Signal'].fillna(0)
 
 # subset and rename columns
-links_field_names = ['link_id', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name', 'Oneway', 'Speed', 'AutoNetwork', 'BikeNetwork','PedNetwork', 'DriveTime', 'BikeTime', 'Pedestrian', 'Length_Miles', 'ConnectorN', 'RoadClass', 'AADT', 'Length_Meters', 'Signal', 'Sig_Count', 'BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']
-links_dataframe_formatted = links_dataframe_temp[['FID_x', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name_x', 'Oneway_x', 'Speed_x', 'AutoNetwor_x', 'BikeNetwor_x', 'PedNetwork_x', 'DriveTime_x', 'BikeTime_x', 'Pedestrian_x', 'Length_Mil_x', 'ConnectorN_x', 'RoadClass_x', 'AADT_x', 'Shape_Leng_x', 'Signal', 'Join_Count','BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd']].copy()
+
+links_field_names = ['link_id', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name', 'Oneway', 'Speed', 'AutoNetwork', 'BikeNetwork','PedNetwork', 'DriveTime', 'BikeTime', 'Pedestrian', 'Length_Miles', 'ConnectorN', 'CartoCode', 'AADT', 'Length_Meters', 'Signal', 'Sig_Count', 'BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd', 'SHAPE']
+links_dataframe_formatted = links_dataframe_temp[['link_id', 'from_node', 'from_x', 'from_y', 'to_node', 'to_x', 'to_y', 'Name', 'Oneway', 'Speed', 'AutoNetwork', 'BikeNetwork', 'PedNetwork', 'DriveTime', 'BikeTime', 'PedestrianTime', 'Length_Miles', 'ConnectorNetwork', 'CartoCode', 'AADT', 'Length_Meters', 'Signal', 'Join_Count','BIKE_L', 'BIKE_R', 'Bike_Lane', 'Bike_Path', 'Bike_Blvd', 'SHAPE']].copy()
 links_dataframe_formatted.columns = links_field_names
 links_dataframe_formatted = links_dataframe_formatted.sort_values(by=['link_id'])
+
 
 
 #------------------------
 # Calculate link slope
 #------------------------
 
-if elevation:
-    
-    ln_from = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'from_node', right_on = 'node_id' , how = 'inner')
-    ln_from = ln_from[['link_id', 'zcoord']].copy()
-    ln_from.columns = ['link_id', 'from_z']
-    
-    ln_to = links_dataframe_formatted.merge(nodes_dataframe_formatted, left_on = 'to_node', right_on = 'node_id' , how = 'inner')
-    ln_to = ln_to[['link_id', 'zcoord']].copy()
-    ln_to.columns = ['link_id', 'to_z']
-    
-    links_df2 = links_dataframe_formatted.merge(ln_from, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
-    links_df2 = links_df2.merge(ln_to, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
-    
-    links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
-    links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
-    links_df2['Slope_Per'] = abs(links_df2['Slope_AB'])
 
-    links_dataframe_formatted = links_df2
+    
+ln_from = links_dataframe_formatted.merge(nodes_dataframe_formatted.drop('SHAPE', axis=1), left_on = 'from_node', right_on = 'node_id' , how = 'inner')
+ln_from = ln_from[['link_id', 'zcoord']].copy()
+ln_from.columns = ['link_id', 'from_z']
 
+ln_to = links_dataframe_formatted.merge(nodes_dataframe_formatted.drop('SHAPE', axis=1), left_on = 'to_node', right_on = 'node_id' , how = 'inner')
+ln_to = ln_to[['link_id', 'zcoord']].copy()
+ln_to.columns = ['link_id', 'to_z']
 
+links_df2 = links_dataframe_formatted.merge(ln_from, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
+links_df2 = links_df2.merge(ln_to, left_on = 'link_id', right_on = 'link_id' , how = 'inner')
 
+links_df2['Slope_AB'] = ((links_df2['from_z'] - links_df2['to_z']) / links_df2['Length_Meters'] * 100) 
+links_df2['Slope_BA'] = ((links_df2['to_z'] - links_df2['from_z']) / links_df2['Length_Meters'] * 100) 
+links_df2['Slope_Per'] = abs(links_df2['Slope_AB'])
+
+links_dataframe_formatted = links_df2
 
 #-------------------
 # format linkpoints
 #-------------------
 
 if create_linkpoints == True:
-    links_nodes = links_dataframe_formatted[['link_id', 'from_node', 'to_node']].copy()
-    
-    links_node_ids = set(list(set(list(links_nodes['from_node']) + list(links_nodes['to_node']))))
-    nodes_ids = set(list(nodes_dataframe_formatted['node_id']))
-    diff =  nodes_ids - links_node_ids
-    
+
     print('--formatting linkpoints')
     linkpoints_dataframe = linkpoints_dataframe.assign(link_id='', point_no='')
-    linkpoints_dataframe_temp = linkpoints_dataframe.merge(links_dataframe, left_on = 'id', right_on = 'id' , how = 'inner')
-    linkpoints_dataframe_temp['link_id'] = linkpoints_dataframe_temp['FID_y']
+    linkpoints_dataframe_temp = linkpoints_dataframe.merge(links_dataframe, left_on = 'temp_id', right_on = 'temp_id' , how = 'inner')
+    linkpoints_dataframe_temp['link_id'] = linkpoints_dataframe_temp['OBJECTID']
     
     # subset and rename columns
     linkpoints_field_names = ['linkpoint_id','link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord']
-    linkpoints_dataframe_formatted = linkpoints_dataframe_temp[['FID_x', 'link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord']].copy()
+    linkpoints_dataframe_formatted = linkpoints_dataframe_temp[['OBJECTID', 'link_id', 'point_no', 'xcoord', 'ycoord', 'zcoord']].copy()
     linkpoints_dataframe_formatted.columns = linkpoints_field_names
     linkpoints_dataframe_formatted = linkpoints_dataframe_formatted.sort_values(by=['linkpoint_id'])
-
+    linkpoints_dataframe_formatted['point_no'] = linkpoints_dataframe_formatted.groupby('link_id')['link_id'].rank(method='first')
 
 
 
@@ -490,56 +428,49 @@ if create_linkpoints == True:
 
 # export formatted csvs
 print('--exporting to csv')
-nodes_dataframe_formatted.to_csv(os.path.join(temp_dir, 'nodes.csv'),index=False)
-links_dataframe_formatted.to_csv(os.path.join(temp_dir, 'links.csv'),index=False)
+nodes_dataframe_formatted.drop(['XY_Key','SHAPE'], axis=1).to_csv(os.path.join(outputs[0], 'nodes.csv'),index=False)
+links_dataframe_formatted.drop('SHAPE', axis=1).to_csv(os.path.join(outputs[0], 'links.csv'),index=False)
 if create_linkpoints == True:
-    linkpoints_dataframe_formatted.to_csv(os.path.join(temp_dir, 'linkpoints.csv'),index=False)
+    linkpoints_dataframe_formatted.drop('SHAPE', axis=1).to_csv(os.path.join(outputs[0], 'linkpoints.csv'),index=False)
 
 
 # export links to shapefile
-links = gpd.read_file(links_final)
-links_data = pd.read_csv(os.path.join(temp_dir, 'links.csv'))[['link_id','from_z','to_z','Slope_AB','Slope_BA', 'Slope_Per']]
-links = links.merge(links_data, left_on = 'id', right_on = 'link_id' , how = 'inner')
-links.to_file(os.path.join(temp_dir, 'links.shp'))
+print('--exporting to shape')
+
+links_dataframe_formatted['link_id'] = links_dataframe_formatted['link_id'].astype('Float64')
+links_dataframe_formatted['from_node'] = links_dataframe_formatted['from_node'].astype('Float64')
+links_dataframe_formatted['to_node'] = links_dataframe_formatted['to_node'].astype('Float64')
+nodes_dataframe_formatted['node_id'] = nodes_dataframe_formatted['node_id'].astype('Float64')
+
+links_dataframe_formatted.spatial.to_featureclass(location=os.path.join(network_gdb, 'links'),sanitize_columns=False) 
+nodes_dataframe_formatted.spatial.to_featureclass(location=os.path.join(network_gdb, 'nodes'),sanitize_columns=False)  
 
 # =====================================
 # Clean up
 # =====================================
 
-if perform_clean_up == True:
-    print('Performing clean-up')
-    trash = [merged_pts, buffered_signals, lines_copy_lyr, lines_copy, lines_erased, start_pts, end_pts, os.path.join(temp_dir, 'start_pts_initial.shp'),  os.path.join(temp_dir, 'end_pts_initial.shp'), os.path.join(temp_dir, 'temp_lines.shp'), os.path.join(temp_dir, 'nodes_draft.shp'), links_final]
-    for item in trash:
-        try:
-            arcpy.Delete_management(item)
-        except:
-            print("--Unable to delete {}".format(item))
-    del item 
+# if perform_clean_up == True:
+#     print('Performing clean-up')
+#     trash = [elevation, merged_pts, buffered_signals, lines_copy_lyr, lines_copy, start_pts, end_pts, os.path.join(temp_dir, 'start_pts_initial.shp'),  os.path.join(temp_dir, 'end_pts_initial.shp'), os.path.join(temp_dir, 'temp_lines.shp'), os.path.join(temp_dir, 'nodes_draft.shp')]
+#     for item in trash:
+#         try:
+#             arcpy.Delete_management(item)
+#         except:
+#             print("--Unable to delete {}".format(item))
+#     del item 
     
-    if create_linkpoints == True:
-        arcpy.Delete_management(os.path.join(temp_dir, 'all_pts.shp'))
-    
-    # remove temp csvs
-    os.remove(os.path.join(temp_dir, 'nodes_temp.csv'))
-    os.remove(os.path.join(temp_dir, 'links_temp.csv'))
-    os.remove(os.path.join(temp_dir, 'nodes_temp.csv.xml'))
-    os.remove(os.path.join(temp_dir, 'links_temp.csv.xml'))
-    
-    if create_linkpoints == True:
-        os.remove(os.path.join(temp_dir, 'linkpoints_temp.csv'))
-        os.remove(os.path.join(temp_dir, 'linkpoints_temp.csv.xml'))
+#     if create_linkpoints == True:
+#         arcpy.Delete_management(os.path.join(temp_dir, 'all_pts.shp'))
     
     
-    del elevation
-    del end_pts
-    del lines_copy
-    del lines_copy_lyr
-    del start_pts
-    
-    del links_final
-    del merged_pts
-    if create_linkpoints == True:
-        del all_pts
-        del linkpoints_layer
+#     del elevation
+#     del end_pts
+#     del lines_copy
+#     del lines_copy_lyr
+#     del start_pts
+#     del merged_pts
+#     if create_linkpoints == True:
+#         del all_pts
+#         del linkpoints_layer
 
 print('Done!')

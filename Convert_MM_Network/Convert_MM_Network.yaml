@@ -1,0 +1,5 @@
+create_linkpoints: False
+perform_clean_up: True
+network: 'E:\\Tasks\\Bike_Modeling_Data_Update\\MM_NetworkDataset_08132024.gdb\\NetworkDataset\\BikePedAuto'
+study_area: '.\\Inputs\\taz_900.shp'
+traffic_signals: 'E:\\Tasks\\Bike_Modeling_Data_Update\\Utah_Traffic_Signals_August2024.shp'

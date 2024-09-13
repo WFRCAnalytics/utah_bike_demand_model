@@ -1,0 +1,28 @@
+# From REMM
+remm_parcel_se: 'E:\\Tasks\\Bike_Modeling_Data_Update\\2024\\parcel_se_2024.csv'
+remm_parcels: 'E:\\Tasks\\Bike_Modeling_Data_Update\\remm_parcels_rtp2023.shp'
+
+# From TDM
+taz_polygons: 'E:\\Projects\\utah_bike_demand_model_2024_BB\\Convert_MM_Network\\Inputs\\taz_900'
+taz_se_data: 'E:\\Tasks\\Bike_Modeling_Data_Update\\2024\\SE_2024.csv'
+taz_life_cycle: 'E:\\Tasks\\Bike_Modeling_Data_Update\\2023\\LifeCycle_Households_Population_2023.csv'
+taz_marginal_income: 'E:\\Tasks\\Bike_Modeling_Data_Update\\2023\\Marginal_Income_2023.csv'
+
+# From Other sources
+microzones: 'E:\\Tasks\\MICROZONES\\Inputs\\Microzones_20240815.shp'
+roads: 'E:\\Tasks\\Bike_Modeling_Data_Update\\Roads.shp'
+trail_heads: '.\\Inputs\\Trailheads.shp'
+long_dist_rec: '.\\Inputs\\Long_Dist_Rec_Pts.shp'
+mtn_bike_hike: '.\\Inputs\\Mtn_Bike_Hiking_Trailheads.shp'
+schools: '.\\Inputs\\Schools.shp'
+light_rail_stops: '.\\Inputs\\LightRailStations_UTA.shp'
+parks: 'E:\\Tasks\\Bike_Modeling_Data_Update\\wcv_parks.shp'
+commuter_rail_stops: 'E:\\Tasks\\Bike_Modeling_Data_Update\\CommuterRailStations_UTA.shp'
+enrollment_shp: 'E:\\Tasks\\Bike_Modeling_Data_Update\\College_Enrollment_by_Year.shp'
+enrollment_data: 'E:\\Tasks\\Bike_Modeling_Data_Update\\TripTableControlTotal.csv'
+enrollment_year: 2024
+group_quarters: 'E:\\Tasks\\Bike_Modeling_Data_Update\\Non_Institutionalized_Group_Quarters_Block_2020.shp'
+industrial_districts: 'E:\\Tasks\\Bike_Modeling_Data_Update\\2024\\industrial_districts_2024.shp'
+bike_kiosks: 'E:\\Tasks\\Bike_Modeling_Data_Update\\GreenBike_Stations_2024_Buffer.shp'
+nodes: '..\\Convert_MM_Network\\Outputs\\bike_network.gdb\\nodes'
+network: '..\\Convert_MM_Network\\Outputs\\bike_network.gdb\\links'
