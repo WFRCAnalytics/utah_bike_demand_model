@@ -19,7 +19,8 @@
 
   - [Meeting Notes](https://github.com/RSGInc/utah_bike_demand_model/wiki)
   - [Model Design](Model_Design/wfrc model spec 01-28-21.pdf)
-  - [Bike Model Coefficents Tracker](https://docs.google.com/spreadsheets/d/1lWqqHUEF0IOpqIgNil0gEWuN29oVjzCsLly4eeluqpA/edit?usp=sharing)
+  - [Bike Model Coefficents Tracker](https://docs.google.com/spreadsheets/d/1lWqqHUEF0IOpqIgNil0gEWuN29oVjzCsLly4eeluqpA/edit?usp=sharing)  
+  - Model outputs are saved in 'logs' folder
   
   
 ## Toolsets
