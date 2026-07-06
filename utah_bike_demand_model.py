@@ -26,6 +26,21 @@ import argparse
 from micromobility_toolset import model
 from micromobility_toolset.network import preprocessor
 
+from Model_Additional_Scripts import bike_model_steps  # noqa: F401  registers local bike output steps
+
+
+class BikeScenario(model.Scenario):
+    """Scenario wrapper that maps standard config names to bike-prefixed files."""
+
+    CONFIG_FILES = {
+        "network.yaml": "bike_network.yaml",
+        "trips.yaml": "bike_trips.yaml",
+        "zone.yaml": "bike_zone.yaml",
+    }
+
+    def config_file_path(self, filename):
+        return super().config_file_path(self.CONFIG_FILES.get(filename, filename))
+
 
 def main():
 
@@ -37,18 +52,22 @@ def main():
     args = parser.parse_args()
 
     model.config_logger()
-    utah_scenario = model.Scenario(
+    utah_scenario = BikeScenario(
         name="Utah Scenario",
         config="Model_Configs",
         inputs="Model_Inputs",
-        outputs="Model_Outputs",
+        outputs="Model_Outputs/Bike",
     )
 
-    if args.step:
+    if args.step == "skim_network":
+        model.run(["skim_network", "add_bike_path_skim_attributes"], utah_scenario)
+
+    elif args.step:
         model.run(args.step, utah_scenario)
 
     else:
         model.run("skim_network", utah_scenario)
+        model.run("add_bike_path_skim_attributes", utah_scenario)
         model.run("generate_demand", utah_scenario)
         model.run("assign_demand", utah_scenario)
 

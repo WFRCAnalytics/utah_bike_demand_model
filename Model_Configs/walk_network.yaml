@@ -1,0 +1,94 @@
+link_file: links_walk.csv
+link_name: link_id
+from_name: from_node
+to_name: to_node
+
+link_attributes_by_direction:
+    distance:
+        - Length_Miles
+        - Length_Miles
+    walk_time:                     # ADDED: walk demand for reference; walk_cost remains distance-based
+        - Pedestrian
+        - Pedestrian
+    traffic_signal:
+        - Signal
+        - Signal
+    slope:
+        - Slope_AB
+        - Slope_BA
+    bike_boulevard:                # NOTE: given zero walk-cost coefficients
+        - Bike_Blvd
+        - Bike_Blvd
+    bike_path:                     # NOTE: used as shared-use path indicator
+        - Bike_Path
+        - Bike_Path
+    bike_lane:                     # NOTE: given zero walk-cost coefficients
+        - Bike_Lane
+        - Bike_Lane
+    AADT:
+        - AADT
+        - AADT
+
+node_file: nodes.csv
+node_name: node_id
+
+node_x_name: xcoord
+node_y_name: ycoord
+
+saved_graph: walk_network.pickle   # CHANGED: new net file for walk; built where PedNetwork=Y
+skim_file: walk_skims.parquet      # CHANGED: new skim file for walk
+
+skim_ozone_col: orig_zone
+skim_dzone_col: dest_zone
+skim_dist_col: distance
+skim_max_cost: 5                   # CHANGED: 5 instead of 10
+
+skim_weights:
+    - walk_cost                    # CHANGED: walk generalized-cost skim (instead of bike_commute)
+    - walk_time                    # ADDED: produces walk_time skim (Pedestrian field); not used by trips.yaml 
+                                   #        unless trip_cost_attr is explicitly changed to walk_time
+
+walk_cost_base_attr: distance      # ADDED: base attribute for walk_cost; distance or walk_time
+
+aadt_levels:                       # NOTE: traffic exposure; walk coeffs set lower than bike
+    light: 5000
+    medium: 10000
+    heavy: 15000
+
+aadt_cross:                        # NOTE: crossing penalties; walk coeffs set lower than bike
+    light: 2500
+    medium: 5000
+    heavy: 10000
+
+aadt_parallel:                     # NOTE: left-turn parallel penalties; walk coeffs set to 0
+    medium: 5000
+    heavy: 10000
+
+slope_levels:                      # NOTE: slope penalties; wak coeffes set lower than bike
+    small: 2
+    medium: 4
+    big: 6
+
+network_coef:
+    walk_cost:
+        bike_blvd: 0.0             # CHANGED: -0.216  no walk effect
+        bike_path: -0.10           # CHANGED: -0.32   not 0 to account for shared use paths
+        small_slope: 0.20          # CHANGED: 0.371   not 0 to account for modest slope penalties
+        med_slope: 0.80            # CHANGED: 1.23
+        big_slope: 2.00            # CHANGED: 3.239
+        light_aadt: 0.0            # CHANGED: 0.368   not 0 to account for modest traffic penalties
+        medium_aadt: 0.05          # CHANGED: 1.4
+        heavy_aadt: 0.15           # CHANGED: 7.157
+        bike_lane_medium_aadt: 0.0 # CHANGED: 0.125   no walk effect
+        bike_lane_heavy_aadt: 0.0  # CHANGED: 0.825
+
+fixed_costs:
+    walk_cost:
+        turn: 0.0                           # CHANGED: -0.068/0.148  no walk effect
+        signal: 0.02                        # CHANGED: 0.034/0.66    not 0 to account for small signal penalties
+        left_or_straight_light_cross: 0.02  # CHANGED: 0.096/0.144   not 0 to account for crossing penalties
+        left_or_straight_med_cross: 0.05    # CHANGED: 0.10/0.2      not 0 to account for crossing penalties
+        left_or_straight_heavy_cross: 0.15  # CHANGED: 0.52/1.1      not 0 to account for crossing penalties
+        right_heavy_cross: 0.05             # CHANGED: 0.062/0.12    not 0 to account for crossing penalties
+        left_med_parallel: 0.0              # CHAGNED: 0.146/0.3     no walk effect
+        left_heavy_parallel: 0.0            # CHAGNED: 0.36/0.8      no walk effect

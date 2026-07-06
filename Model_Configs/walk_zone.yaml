@@ -1,0 +1,22 @@
+zone_file_name: microzones.csv
+zone_zone_column: zone_id
+zone_node_column: node_id
+zone_hh_col: households
+
+buffer_dist: 1.0                 # CHANGED: 2.5  shorter buffer for distance-decay curve
+buffer_cols:
+    - households
+    - population                 # ADDED: population is basic walk-market size variable
+    - jobs_total                 # ADDED: total jobs is useful for walk activity
+    - jobs3
+    - jobs4
+    - jobs6
+    - jobs5
+    - enrol_elem
+    - enrol_midl
+    - enrol_high
+    - coll_enrol
+    - park_score
+    - th_score                  # NOTE: unchanged; trailhead still good for rec walk
+    - mixed_use
+    - bkpath_len                # NOTE: unchanged; bike-path as proxy for shared-use

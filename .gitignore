@@ -19,3 +19,7 @@ Model_Outputs/
 
 # ignore logfiles
 *.log
+
+# ignore Python bytecode/cache files
+__pycache__/
+*.py[cod]
