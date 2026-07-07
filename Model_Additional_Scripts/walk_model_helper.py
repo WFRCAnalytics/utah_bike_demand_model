@@ -1,4 +1,4 @@
-"""Walk-specific model steps.
+"""Walk-specific model helper steps.
 
 These are local walk-mode copies of the demand generation and assignment steps
 from micromobility_toolset. Keeping them in this repo lets the walk model use
@@ -6,6 +6,7 @@ walk-specific config keys and output names without editing the installed package
 """
 
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -15,10 +16,25 @@ from micromobility_toolset.model import step
 
 WALK_PATH_SKIM_OUTPUTS = {
     "walk_cost": {
-        "distance": "walk_cost_distance",
-        "walk_time": "walk_cost_time",
+        "distance": "walk_distance",
+        "walk_time": "walk_time",
     },
 }
+
+WALK_SKIM_OUTPUT_COLUMNS = [
+    "distance",
+    "walk_cost",
+    "walk_distance",
+    "walk_time",
+]
+
+WALK_CLEAN_COLUMNS = [
+    "orig_zone",
+    "dest_zone",
+    "walk_cost",
+    "walk_distance",
+    "walk_time",
+]
 
 
 @step()
@@ -37,38 +53,40 @@ def add_walk_path_skim_attributes(*scenarios):
         skim_df = pd.read_parquet(skim_path)
         _ensure_skim_index(skim_df, scenario)
 
-        missing_outputs = [
-            output_col
-            for outputs in WALK_PATH_SKIM_OUTPUTS.values()
-            for output_col in outputs.values()
-            if output_col not in skim_df.columns
-        ]
-
-        if not missing_outputs:
-            scenario.logger.info(f"{skim_file} already contains walk path attributes")
-            continue
-
         for cost_attr, output_cols in WALK_PATH_SKIM_OUTPUTS.items():
-            needed = {
-                attr: col
-                for attr, col in output_cols.items()
-                if col not in skim_df.columns
-            }
-
-            if not needed:
-                continue
-
             scenario.logger.info(
                 f"calculating path attributes along shortest {cost_attr} paths..."
             )
-            results = _skim_path_attributes(scenario, skim_df, cost_attr, needed)
+            results = _skim_path_attributes(scenario, skim_df, cost_attr, output_cols)
 
-            for attr, output_col in needed.items():
+            for attr, output_col in output_cols.items():
                 skim_df[output_col] = results[attr]
+
+        skim_df = _format_walk_skim_output(skim_df, scenario)
 
         scenario.logger.info(f"saving appended skims to {skim_path}...")
         skim_df.to_parquet(skim_path)
         scenario.logger.info("done.")
+
+
+def cleanup_walk_skims(output_dir):
+    """Keep only final walk skim columns in walk_skims.parquet."""
+
+    output_dir = Path(output_dir)
+    source = output_dir / "walk_skims.parquet"
+
+    if not source.exists():
+        raise FileNotFoundError(f"could not find {source}")
+
+    skim_df = _read_skim(source)
+    _require_columns(
+        skim_df,
+        ["orig_zone", "dest_zone", "walk_cost", "walk_distance", "walk_time"],
+        source,
+    )
+
+    skim_df[WALK_CLEAN_COLUMNS].to_parquet(source, index=False)
+    return source
 
 
 def _ensure_skim_index(skim_df, scenario):
@@ -85,6 +103,48 @@ def _ensure_skim_index(skim_df, scenario):
         )
 
     skim_df.set_index([ozone_col, dzone_col], inplace=True)
+
+
+def _read_skim(path):
+    skim_df = pd.read_parquet(path)
+
+    if {"orig_zone", "dest_zone"}.issubset(skim_df.columns):
+        return skim_df
+
+    if isinstance(skim_df.index, pd.MultiIndex):
+        skim_df.index.names = [
+            name if name is not None else fallback
+            for name, fallback in zip(skim_df.index.names, ["orig_zone", "dest_zone"])
+        ]
+        return skim_df.reset_index()
+
+    if skim_df.index.name in ["orig_zone", "dest_zone"]:
+        return skim_df.reset_index()
+
+    return skim_df
+
+
+def _require_columns(skim_df, columns, path):
+    missing = [col for col in columns if col not in skim_df.columns]
+
+    if missing:
+        raise KeyError(f"{path} is missing expected columns: {missing}")
+
+
+def _format_walk_skim_output(skim_df, scenario):
+    ozone_col = scenario.network_settings.get("skim_ozone_col")
+    dzone_col = scenario.network_settings.get("skim_dzone_col")
+
+    missing_cols = [
+        col for col in WALK_SKIM_OUTPUT_COLUMNS
+        if col not in skim_df.columns
+    ]
+    if missing_cols:
+        raise KeyError(f"missing expected walk skim columns: {missing_cols}")
+
+    formatted = skim_df[WALK_SKIM_OUTPUT_COLUMNS].copy()
+    formatted.index.names = [ozone_col, dzone_col]
+    return formatted.reset_index()
 
 
 def _skim_path_attributes(scenario, skim_df, cost_attr, output_cols):

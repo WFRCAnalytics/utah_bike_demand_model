@@ -26,7 +26,7 @@ import argparse
 from micromobility_toolset import model
 from micromobility_toolset.network import preprocessor
 
-from Model_Additional_Scripts import bike_model_steps  # noqa: F401  registers local bike output steps
+from Model_Additional_Scripts import bike_model_helper  # noqa: F401  registers local bike output steps
 
 
 class BikeScenario(model.Scenario):

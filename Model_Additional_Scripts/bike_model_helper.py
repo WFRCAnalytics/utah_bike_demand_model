@@ -1,10 +1,13 @@
-"""Bike-specific output steps.
+"""Bike-specific skim helper steps.
 
 These steps extend the local Utah bike model without editing the installed
 micromobility_toolset package.
 """
 
+import gc
 import os
+import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -23,6 +26,17 @@ PATH_SKIM_OUTPUTS = {
         "bike_time": "bike_non_commute_time",
     },
 }
+
+BIKE_CLEAN_COLUMNS = [
+    "orig_zone",
+    "dest_zone",
+    "bike_commute_cost",
+    "bike_commute_distance",
+    "bike_commute_time",
+    "bike_noncommute_cost",
+    "bike_noncommute_distance",
+    "bike_noncommute_time",
+]
 
 
 @step()
@@ -77,6 +91,67 @@ def add_bike_path_skim_attributes(*scenarios):
         scenario.logger.info("done.")
 
 
+def cleanup_bike_skims(output_dir):
+    """Rename skims.parquet to bike_skims.parquet and keep final bike columns."""
+
+    output_dir = Path(output_dir)
+    source = output_dir / "skims.parquet"
+    cleaned = output_dir / "bike_skims.parquet"
+
+    if not source.exists() and cleaned.exists():
+        source = cleaned
+
+    if not source.exists():
+        raise FileNotFoundError(f"could not find {output_dir / 'skims.parquet'}")
+
+    skim_df = _read_skim(source)
+    _require_columns(
+        skim_df,
+        [
+            "orig_zone",
+            "dest_zone",
+            "bike_commute",
+            "bike_commute_distance",
+            "bike_commute_time",
+            "bike_non_commute",
+            "bike_non_commute_distance",
+            "bike_non_commute_time",
+        ],
+        source,
+    )
+
+    cleaned_df = pd.DataFrame(
+        {
+            "orig_zone": skim_df["orig_zone"],
+            "dest_zone": skim_df["dest_zone"],
+            "bike_commute_cost": skim_df["bike_commute"],
+            "bike_commute_distance": skim_df["bike_commute_distance"],
+            "bike_commute_time": skim_df["bike_commute_time"],
+            "bike_noncommute_cost": skim_df["bike_non_commute"],
+            "bike_noncommute_distance": skim_df["bike_non_commute_distance"],
+            "bike_noncommute_time": skim_df["bike_non_commute_time"],
+        },
+        columns=BIKE_CLEAN_COLUMNS,
+    )
+
+    cleaned_df.to_parquet(cleaned, index=False)
+
+    if source.name == "skims.parquet":
+        del skim_df
+        del cleaned_df
+        gc.collect()
+
+        try:
+            source.unlink()
+        except PermissionError:
+            warnings.warn(
+                f"created {cleaned}, but could not remove {source}; "
+                "it may be locked by Windows"
+            )
+
+    return cleaned
+
+
 def _ensure_skim_index(skim_df, scenario):
     ozone_col = scenario.network_settings.get("skim_ozone_col")
     dzone_col = scenario.network_settings.get("skim_dzone_col")
@@ -91,6 +166,32 @@ def _ensure_skim_index(skim_df, scenario):
         )
 
     skim_df.set_index([ozone_col, dzone_col], inplace=True)
+
+
+def _read_skim(path):
+    skim_df = pd.read_parquet(path)
+
+    if {"orig_zone", "dest_zone"}.issubset(skim_df.columns):
+        return skim_df
+
+    if isinstance(skim_df.index, pd.MultiIndex):
+        skim_df.index.names = [
+            name if name is not None else fallback
+            for name, fallback in zip(skim_df.index.names, ["orig_zone", "dest_zone"])
+        ]
+        return skim_df.reset_index()
+
+    if skim_df.index.name in ["orig_zone", "dest_zone"]:
+        return skim_df.reset_index()
+
+    return skim_df
+
+
+def _require_columns(skim_df, columns, path):
+    missing = [col for col in columns if col not in skim_df.columns]
+
+    if missing:
+        raise KeyError(f"{path} is missing expected columns: {missing}")
 
 
 def _ensure_bike_time_attribute(scenario):

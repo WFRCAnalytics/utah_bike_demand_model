@@ -10,7 +10,7 @@ import argparse
 from micromobility_toolset import model
 from micromobility_toolset.network import preprocessor
 
-from Model_Additional_Scripts import walk_model_steps  # noqa: F401  registers local walk model steps
+from Model_Additional_Scripts import walk_model_helper  # noqa: F401  registers local walk model steps
 
 
 class WalkScenario(model.Scenario):

@@ -45,8 +45,6 @@ skim_max_cost: 5                   # CHANGED: 5 instead of 10
 
 skim_weights:
     - walk_cost                    # CHANGED: walk generalized-cost skim (instead of bike_commute)
-    - walk_time                    # ADDED: produces walk_time skim (Pedestrian field); not used by trips.yaml 
-                                   #        unless trip_cost_attr is explicitly changed to walk_time
 
 walk_cost_base_attr: distance      # ADDED: base attribute for walk_cost; distance or walk_time
 
